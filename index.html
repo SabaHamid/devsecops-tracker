@@ -11,7 +11,6 @@
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:system-ui,sans-serif;background:#f9fafb;color:#111827;min-height:100vh}
 input[type=date]{font-family:inherit}
-a{color:inherit}
 ::-webkit-scrollbar{width:6px}
 ::-webkit-scrollbar-track{background:#f1f1f1}
 ::-webkit-scrollbar-thumb{background:#d1d5db;border-radius:3px}
@@ -20,14 +19,11 @@ a{color:inherit}
   .card{background:#27272a!important;border-color:#3f3f46!important}
   .nav-btn{color:#a1a1aa}
   .nav-btn.active{background:#3f3f46!important;color:#f4f4f5!important}
-  .metric{background:#27272a!important}
+  .metric{background:#27272a!important;border-color:#3f3f46!important}
   input[type=date]{background:#27272a;color:#f4f4f5;border-color:#3f3f46}
-  .week-border{border-color:#3f3f46!important}
-  .nudge-info{background:#1e3a5f!important;border-color:#2563eb!important;color:#93c5fd!important}
-  .nudge-warn{background:#451a03!important;border-color:#92400e!important;color:#fcd34d!important}
-  .nudge-success{background:#052e16!important;border-color:#166534!important;color:#86efac!important}
-  .step-purple{background:#312e81!important;color:#a5b4fc!important}
-  .step-green{background:#052e16!important;color:#86efac!important}
+  .week-sep{border-color:#3f3f46!important}
+  .task-link{color:#818cf8!important}
+  .task-link:hover{color:#a5b4fc!important}
 }
 </style>
 </head>
@@ -38,44 +34,140 @@ const{useState,useEffect}=React;
 
 const PLAN=[
   {month:1,phase:"Phase 1",title:"Linux & Command Line Foundations",weeks:[
-    {week:1,title:"Linux orientation",tasks:["TryHackMe — Linux Fundamentals Part 1","TryHackMe — Linux Fundamentals Part 2","Navigate terminal without notes"]},
-    {week:2,title:"Linux power tools",tasks:["TryHackMe — Linux Fundamentals Part 3","YouTube — NetworkChuck Linux commands","OverTheWire Bandit Level 0–5"]},
-    {week:3,title:"Git & pipelines",tasks:["FreeCodeCamp Git & GitHub Crash Course","GitHub Docs — Understanding GitHub Actions","Read a real repo's .github/workflows folder"]},
-    {week:4,title:"Consolidate & self-assess",tasks:["OverTheWire Bandit Level 6–10","OWASP — What is DevSecOps?","Self-assessment gate check"]},
+    {week:1,title:"Linux orientation",tasks:[
+      {label:"TryHackMe — Linux Fundamentals Part 1",url:"https://tryhackme.com/room/linuxfundamentalspart1"},
+      {label:"TryHackMe — Linux Fundamentals Part 2",url:"https://tryhackme.com/room/linuxfundamentalspart2"},
+      {label:"Navigate terminal without notes (personal challenge)",url:null},
+    ]},
+    {week:2,title:"Linux power tools",tasks:[
+      {label:"TryHackMe — Linux Fundamentals Part 3",url:"https://tryhackme.com/room/linuxfundamentalspart3"},
+      {label:"YouTube — NetworkChuck Linux commands",url:"https://www.youtube.com/watch?v=rrB13utjYV4"},
+      {label:"OverTheWire — Bandit Level 0–5",url:"https://overthewire.org/wargames/bandit/"},
+    ]},
+    {week:3,title:"Git & pipelines",tasks:[
+      {label:"FreeCodeCamp — Git & GitHub Crash Course",url:"https://www.youtube.com/watch?v=RGOj5yH7evk"},
+      {label:"GitHub Docs — Understanding GitHub Actions",url:"https://docs.github.com/en/actions/learn-github-actions/understanding-github-actions"},
+      {label:"Read a real repo's .github/workflows folder",url:"https://github.com"},
+    ]},
+    {week:4,title:"Consolidate & self-assess",tasks:[
+      {label:"OverTheWire — Bandit Level 6–10",url:"https://overthewire.org/wargames/bandit/"},
+      {label:"OWASP — What is DevSecOps?",url:"https://owasp.org/www-project-devsecops-guideline/"},
+      {label:"Self-assessment gate check (personal reflection)",url:null},
+    ]},
   ]},
   {month:2,phase:"Phase 1",title:"CI/CD Configuration & AWS Deeper Dive",weeks:[
-    {week:1,title:"Build your first pipeline",tasks:["TechWorld with Nana — GitHub Actions Tutorial","Create a repo & write a basic workflow YAML","GitHub Docs — Workflow syntax reference"]},
-    {week:2,title:"Pipeline secrets & security",tasks:["Extend pipeline with test steps","YouTube — GitHub Actions Secrets & Env Variables","GitGuardian — Top CI/CD Security Risks"]},
-    {week:3,title:"AWS IAM & S3 security",tasks:["AWS Skill Builder — Cloud Practitioner Security module","AWS Free Tier — IAM hands-on practice","AWS Docs — S3 Bucket Policies"]},
-    {week:4,title:"Connect it all",tasks:["Deploy file to S3 via GitHub Actions + IAM secrets","TryHackMe — CI/CD and Build Security room","Phase 1 gate check self-assessment"]},
+    {week:1,title:"Build your first pipeline",tasks:[
+      {label:"TechWorld with Nana — GitHub Actions Tutorial",url:"https://www.youtube.com/watch?v=R8_veQiYBjI"},
+      {label:"GitHub — Create a repo & write a basic workflow YAML",url:"https://github.com"},
+      {label:"GitHub Docs — Workflow syntax reference",url:"https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions"},
+    ]},
+    {week:2,title:"Pipeline secrets & security",tasks:[
+      {label:"GitHub — Extend pipeline with test steps & job dependencies",url:"https://github.com"},
+      {label:"YouTube — GitHub Actions Secrets & Env Variables",url:"https://www.youtube.com/watch?v=IuRjt3yUHbk"},
+      {label:"GitGuardian — Top CI/CD Security Risks",url:"https://blog.gitguardian.com/top-cicd-security-risks/"},
+    ]},
+    {week:3,title:"AWS IAM & S3 security",tasks:[
+      {label:"AWS Skill Builder — Cloud Practitioner Essentials (Security module)",url:"https://explore.skillbuilder.aws/learn/course/external/view/elearning/134/aws-cloud-practitioner-essentials"},
+      {label:"AWS Free Tier — IAM hands-on practice",url:"https://aws.amazon.com/free/"},
+      {label:"AWS Docs — S3 Bucket Policies & Block Public Access",url:"https://docs.aws.amazon.com/AmazonS3/latest/userguide/access-control-block-public-access.html"},
+    ]},
+    {week:4,title:"Connect it all",tasks:[
+      {label:"Deploy file to S3 via GitHub Actions + IAM secrets",url:"https://docs.github.com/en/actions/deployment/deploying-to-your-cloud-provider/deploying-to-amazon-elastic-container-service"},
+      {label:"TryHackMe — CI/CD and Build Security room",url:"https://tryhackme.com/room/cicdandbuildsecurity"},
+      {label:"Phase 1 gate check self-assessment (personal reflection)",url:null},
+    ]},
   ]},
   {month:3,phase:"Phase 2",title:"Security Fundamentals & Security+ Study Begins",weeks:[
-    {week:1,title:"Core security concepts",tasks:["Professor Messer — Security+ Domain 1","OWASP Top 10 — Read all 10 entries","YouTube — CIA Triad Explained"]},
-    {week:2,title:"Network security & cryptography",tasks:["Professor Messer — Domain 2 Networking","YouTube — How HTTPS Works by ByteByteGo","TryHackMe — Network Fundamentals"]},
-    {week:3,title:"Authentication & identity",tasks:["Professor Messer — Domain 3 Identity & Access","TryHackMe — Authentication Bypass room","Quizlet — Create security flashcards"]},
-    {week:4,title:"Security+ baseline exam",tasks:["Jason Dion — Security+ Practice Exam (cold)","Review every wrong answer","Note 2 weakest domains"]},
+    {week:1,title:"Core security concepts",tasks:[
+      {label:"Professor Messer — Security+ Domain 1: Threats & Vulnerabilities",url:"https://www.professormesser.com/security-plus/sy0-701/sy0-701-video/sy0-701-comptia-security-plus-course/"},
+      {label:"OWASP Top 10 — Official list & descriptions",url:"https://owasp.org/www-project-top-ten/"},
+      {label:"YouTube — CIA Triad Explained by Professor Messer",url:"https://www.youtube.com/watch?v=SBcDGb9l6yo"},
+    ]},
+    {week:2,title:"Network security & cryptography",tasks:[
+      {label:"Professor Messer — Domain 2: Architecture & Networking sections",url:"https://www.professormesser.com/security-plus/sy0-701/sy0-701-video/sy0-701-comptia-security-plus-course/"},
+      {label:"YouTube — How HTTPS Works by ByteByteGo",url:"https://www.youtube.com/watch?v=j9QmMEWmcfo"},
+      {label:"TryHackMe — Pre-Security Network Fundamentals",url:"https://tryhackme.com/room/whatisnetworking"},
+    ]},
+    {week:3,title:"Authentication & identity",tasks:[
+      {label:"Professor Messer — Domain 3: Identity & Access Management",url:"https://www.professormesser.com/security-plus/sy0-701/sy0-701-video/sy0-701-comptia-security-plus-course/"},
+      {label:"TryHackMe — Authentication Bypass room",url:"https://tryhackme.com/room/authenticationbypass"},
+      {label:"Quizlet — Create security flashcards",url:"https://quizlet.com"},
+    ]},
+    {week:4,title:"Security+ baseline exam",tasks:[
+      {label:"Jason Dion — Security+ Practice Exam (cold attempt)",url:"https://www.udemy.com/course/comptia-security-practice-exams/"},
+      {label:"Review every wrong answer with explanation",url:null},
+      {label:"Note 2 weakest domains & set improvement target",url:null},
+    ]},
   ]},
   {month:4,phase:"Phase 3",title:"Penetration Testing Basics",weeks:[
-    {week:1,title:"Pen testing methodology",tasks:["TCM Security — Practical Ethical Hacking (intro)","PTES — Penetration Testing Execution Standard","TryHackMe — Intro to Offensive Security"]},
-    {week:2,title:"Recon & Nmap scanning",tasks:["TCM Security — Recon & Scanning sections","TryHackMe — Nmap room","Install Nmap and scan your own machine"]},
-    {week:3,title:"Burp Suite & web app testing",tasks:["YouTube — Burp Suite for Beginners","TryHackMe — OWASP Top 10 room","OWASP WebGoat — practice injection labs"]},
-    {week:4,title:"First full CTF",tasks:["TryHackMe — Jr Penetration Tester path (start)","TryHackMe — Basic Pentesting CTF","Write a mini pen test report"]},
+    {week:1,title:"Pen testing methodology",tasks:[
+      {label:"TCM Security — Practical Ethical Hacking (intro + methodology)",url:"https://www.udemy.com/course/practical-ethical-hacking/"},
+      {label:"PTES — Penetration Testing Execution Standard",url:"http://www.pentest-standard.org/index.php/Main_Page"},
+      {label:"TryHackMe — Intro to Offensive Security",url:"https://tryhackme.com/room/introtooffensivesecurity"},
+    ]},
+    {week:2,title:"Recon & Nmap scanning",tasks:[
+      {label:"TCM Security — Reconnaissance & Scanning sections",url:"https://www.udemy.com/course/practical-ethical-hacking/"},
+      {label:"TryHackMe — Nmap room",url:"https://tryhackme.com/room/furthernmap"},
+      {label:"Download Nmap & scan your own machine (127.0.0.1)",url:"https://nmap.org/download.html"},
+    ]},
+    {week:3,title:"Burp Suite & web app testing",tasks:[
+      {label:"YouTube — Burp Suite for Beginners by TechHax",url:"https://www.youtube.com/watch?v=G3hpAeoZ4ek"},
+      {label:"TryHackMe — OWASP Top 10 room",url:"https://tryhackme.com/room/owasptop10"},
+      {label:"OWASP WebGoat — deliberately vulnerable app",url:"https://owasp.org/www-project-webgoat/"},
+    ]},
+    {week:4,title:"First full CTF",tasks:[
+      {label:"TryHackMe — Jr Penetration Tester path (start)",url:"https://tryhackme.com/path/outline/jrpenetrationtester"},
+      {label:"TryHackMe — Basic Pentesting CTF room",url:"https://tryhackme.com/room/basicpentestingjt"},
+      {label:"Write a mini pen test report (personal task)",url:null},
+    ]},
   ]},
   {month:5,phase:"Phase 4",title:"DevSecOps Integration",weeks:[
-    {week:1,title:"SAST & code scanning",tasks:["YouTube — What is SAST vs DAST? by Snyk","Semgrep — Add SAST to GitHub Actions pipeline","Snyk — Free account + scan a public repo"]},
-    {week:2,title:"Secrets & dependency security",tasks:["GitHub — Enable Secret Scanning & Dependabot","TryHackMe — OWASP Top 10 2021 room","GitGuardian — State of Secrets Sprawl report"]},
-    {week:3,title:"AWS cloud security",tasks:["YouTube — AWS Security Hub Overview","AWS Free Tier — Enable GuardDuty trial","AWS IAM Access Analyzer — run on your account"]},
-    {week:4,title:"Portfolio pipeline project",tasks:["Build pipeline with 3 security gates","Write README documenting your secure pipeline","Month 5 gate check self-assessment"]},
+    {week:1,title:"SAST & code scanning",tasks:[
+      {label:"YouTube — What is SAST vs DAST? by Snyk",url:"https://www.youtube.com/watch?v=_IXBqBMDheE"},
+      {label:"Semgrep — Add SAST scanning to your GitHub Actions pipeline",url:"https://semgrep.dev/docs/semgrep-ci/overview/"},
+      {label:"Snyk — Create free account & scan a public repo",url:"https://snyk.io"},
+    ]},
+    {week:2,title:"Secrets & dependency security",tasks:[
+      {label:"GitHub — Enable Secret Scanning & Dependabot",url:"https://docs.github.com/en/code-security/secret-scanning/about-secret-scanning"},
+      {label:"TryHackMe — OWASP Top 10 2021 room",url:"https://tryhackme.com/room/owasptop102021"},
+      {label:"GitGuardian — State of Secrets Sprawl report",url:"https://www.gitguardian.com/state-of-secrets-sprawl"},
+    ]},
+    {week:3,title:"AWS cloud security",tasks:[
+      {label:"YouTube — AWS Security Hub Overview",url:"https://www.youtube.com/watch?v=o0NDi01YPXs"},
+      {label:"AWS — Enable GuardDuty (30-day free trial)",url:"https://aws.amazon.com/guardduty/"},
+      {label:"AWS IAM Access Analyzer — run on your account",url:"https://docs.aws.amazon.com/IAM/latest/UserGuide/what-is-access-analyzer.html"},
+    ]},
+    {week:4,title:"Portfolio pipeline project",tasks:[
+      {label:"GitHub — Build pipeline with 3 security gates (Semgrep + Snyk + secrets)",url:"https://github.com"},
+      {label:"Write README documenting your secure pipeline",url:null},
+      {label:"Month 5 gate check self-assessment (personal reflection)",url:null},
+    ]},
   ]},
   {month:6,phase:"Phase 4",title:"Security+ Final Prep & Exam",weeks:[
-    {week:1,title:"Weak domain blitz",tasks:["Jason Dion — Practice Exam 2nd attempt","Professor Messer — Rewatch 2 weakest domains","Quizlet — Review full flashcard deck"]},
-    {week:2,title:"PBQs & exam technique",tasks:["YouTube — Security+ PBQ Walkthrough","Jason Dion — Full timed practice exam","CompTIA — Official exam objectives skim"]},
-    {week:3,title:"Final consolidation & booking",tasks:["Jason Dion — Final practice exam (target 85%+)","Book Security+ exam via Pearson VUE","Update LinkedIn & CV with new skills"]},
-    {week:4,title:"Exam week",tasks:["Light review — all wrong answers compiled","Professor Messer — Last-Minute study notes","Take your Security+ exam"]},
+    {week:1,title:"Weak domain blitz",tasks:[
+      {label:"Jason Dion — Security+ Practice Exam (2nd attempt)",url:"https://www.udemy.com/course/comptia-security-practice-exams/"},
+      {label:"Professor Messer — Rewatch your 2 weakest domains",url:"https://www.professormesser.com/security-plus/sy0-701/sy0-701-video/sy0-701-comptia-security-plus-course/"},
+      {label:"Quizlet — Review full flashcard deck",url:"https://quizlet.com"},
+    ]},
+    {week:2,title:"PBQs & exam technique",tasks:[
+      {label:"YouTube — Security+ PBQ Walkthrough by Professor Messer",url:"https://www.youtube.com/watch?v=_nyZhYnCNLA"},
+      {label:"Jason Dion — Full timed practice exam (new set)",url:"https://www.udemy.com/course/comptia-security-practice-exams/"},
+      {label:"CompTIA — Official Security+ exam objectives (skim)",url:"https://www.comptia.org/training/resources/exam-objectives"},
+    ]},
+    {week:3,title:"Final consolidation & booking",tasks:[
+      {label:"Jason Dion — Final full practice exam (target 85%+)",url:"https://www.udemy.com/course/comptia-security-practice-exams/"},
+      {label:"Book Security+ exam via Pearson VUE",url:"https://home.pearsonvue.com/comptia"},
+      {label:"Update LinkedIn & CV with all new skills",url:"https://linkedin.com"},
+    ]},
+    {week:4,title:"Exam week",tasks:[
+      {label:"Light review — compile all wrong answers from practice exams",url:null},
+      {label:"Professor Messer — Last-Minute Security+ study notes",url:"https://www.professormesser.com/security-plus/sy0-701/sy0-701-study-groups/"},
+      {label:"Take your Security+ exam via Pearson VUE",url:"https://home.pearsonvue.com/comptia"},
+    ]},
   ]},
 ];
 
-const STORAGE_KEY="devsecops_v1";
+const STORAGE_KEY="devsecops_v2";
 const START_KEY="devsecops_start";
 const phaseColors={"Phase 1":"#4f46e5","Phase 2":"#0891b2","Phase 3":"#dc2626","Phase 4":"#16a34a"};
 
@@ -94,9 +186,15 @@ function getNudge(checked,startDate){
   if(dow>=3&&wDone===0)return{msg:`Midweek check-in: you haven't started this week's tasks yet. Even 30 minutes today keeps momentum alive.`,type:"warn"};
   if(dow>=5&&wDone<wTotal)return{msg:`Weekend reminder: ${wTotal-wDone} task(s) left this week. A quick session now keeps you on track.`,type:"warn"};
   if(wDone===wTotal&&wTotal>0)return{msg:`This week's tasks are all done! You're ${pct}% through the full plan. Great work.`,type:"success"};
-  if(done===0)return{msg:"Your journey starts with a single task. Open Month 1 and check off your first item today.",type:"info"};
+  if(done===0)return{msg:"Your journey starts with a single task. Open Month 1 and click the first resource to begin.",type:"info"};
   return{msg:`You're ${pct}% through the 6-month plan. Consistency beats intensity — keep showing up.`,type:"info"};
 }
+
+const nudgeStyle={
+  warn:{background:"#fefce8",border:"0.5px solid #fde68a",color:"#92400e"},
+  success:{background:"#f0fdf4",border:"0.5px solid #bbf7d0",color:"#15803d"},
+  info:{background:"#eff6ff",border:"0.5px solid #bfdbfe",color:"#1e40af"}
+};
 
 function App(){
   const[checked,setChecked]=useState({});
@@ -121,7 +219,8 @@ function App(){
     }catch{}
   };
 
-  const toggleTask=key=>{
+  const toggleTask=(key,e)=>{
+    e.stopPropagation();
     const next={...checked,[key]:!checked[key]};
     setChecked(next);save(next,undefined);
   };
@@ -139,9 +238,6 @@ function App(){
 
   const nudge=getNudge(checked,startDate);
 
-  const nudgeClass=nudge.type==="warn"?"nudge-warn":nudge.type==="success"?"nudge-success":"nudge-info";
-  const nudgeStyle={warn:{background:"#fefce8",border:"0.5px solid #fde68a",color:"#92400e"},success:{background:"#f0fdf4",border:"0.5px solid #bbf7d0",color:"#15803d"},info:{background:"#eff6ff",border:"0.5px solid #bfdbfe",color:"#1e40af"}};
-
   return(
     <div style={{maxWidth:700,margin:"0 auto",padding:"20px 16px"}}>
       <div style={{marginBottom:20}}>
@@ -151,7 +247,8 @@ function App(){
 
       <div style={{display:"flex",gap:6,marginBottom:20,borderBottom:"0.5px solid #e5e7eb",paddingBottom:12}}>
         {["dashboard","plan","setup"].map(v=>(
-          <button key={v} className={`nav-btn${view===v?" active":""}`} onClick={()=>setView(v)} style={{background:view===v?"#f3f4f6":"transparent",border:"0.5px solid "+(view===v?"#d1d5db":"transparent"),borderRadius:8,padding:"6px 16px",fontSize:13,cursor:"pointer",fontWeight:view===v?500:400,fontFamily:"inherit"}}>
+          <button key={v} className={`nav-btn${view===v?" active":""}`} onClick={()=>setView(v)}
+            style={{background:view===v?"#f3f4f6":"transparent",border:"0.5px solid "+(view===v?"#d1d5db":"transparent"),borderRadius:8,padding:"6px 16px",fontSize:13,cursor:"pointer",fontWeight:view===v?500:400,fontFamily:"inherit",color:view===v?"#111827":"#6b7280"}}>
             {v==="dashboard"?"Dashboard":v==="plan"?"Full plan":"Setup"}
           </button>
         ))}
@@ -159,8 +256,7 @@ function App(){
 
       {view==="dashboard"&&(
         <>
-          <div className={nudgeClass} style={{...nudgeStyle[nudge.type],borderRadius:10,padding:"10px 14px",fontSize:13,marginBottom:16}}>{nudge.msg}</div>
-
+          <div style={{...nudgeStyle[nudge.type],borderRadius:10,padding:"10px 14px",fontSize:13,marginBottom:16}}>{nudge.msg}</div>
           <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:10,marginBottom:18}}>
             {[{label:"Overall progress",val:pct+"%",sub:`${done}/${total} tasks`},{label:"Tasks completed",val:done,sub:"across all months"},{label:"Remaining",val:total-done,sub:"tasks to finish"}].map((c,i)=>(
               <div key={i} className="metric" style={{background:"#f9fafb",border:"0.5px solid #e5e7eb",borderRadius:10,padding:"12px 14px"}}>
@@ -170,7 +266,6 @@ function App(){
               </div>
             ))}
           </div>
-
           <div className="card" style={{background:"#fff",border:"0.5px solid #e5e7eb",borderRadius:12,padding:"16px"}}>
             <div style={{fontSize:14,fontWeight:500,marginBottom:14}}>Monthly progress</div>
             {PLAN.map((m,i)=>(
@@ -193,12 +288,12 @@ function App(){
         <>
           <div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:14}}>
             {PLAN.map((m,i)=>(
-              <button key={i} onClick={()=>setActiveMonth(i)} style={{background:activeMonth===i?phaseColors[m.phase]+"18":"transparent",border:"0.5px solid "+(activeMonth===i?phaseColors[m.phase]:"#e5e7eb"),borderRadius:8,padding:"5px 14px",fontSize:13,cursor:"pointer",color:activeMonth===i?phaseColors[m.phase]:"#6b7280",fontWeight:activeMonth===i?500:400,fontFamily:"inherit"}}>
+              <button key={i} onClick={()=>setActiveMonth(i)}
+                style={{background:activeMonth===i?phaseColors[m.phase]+"18":"transparent",border:"0.5px solid "+(activeMonth===i?phaseColors[m.phase]:"#e5e7eb"),borderRadius:8,padding:"5px 14px",fontSize:13,cursor:"pointer",color:activeMonth===i?phaseColors[m.phase]:"#6b7280",fontWeight:activeMonth===i?500:400,fontFamily:"inherit"}}>
                 M{m.month}
               </button>
             ))}
           </div>
-
           {(()=>{
             const m=PLAN[activeMonth],mp=mProg[activeMonth];
             return(
@@ -220,7 +315,7 @@ function App(){
                   const open=!!expandedWeeks[wKey];
                   return(
                     <div key={wi}>
-                      <div className="week-border" style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"10px 0",cursor:"pointer",borderTop:"0.5px solid #f3f4f6"}} onClick={()=>toggleWeek(wKey)}>
+                      <div className="week-sep" style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"10px 0",cursor:"pointer",borderTop:"0.5px solid #f3f4f6"}} onClick={()=>toggleWeek(wKey)}>
                         <div>
                           <span style={{fontSize:11,color:"#9ca3af"}}>Week {w.week} · </span>
                           <span style={{fontSize:14,fontWeight:500}}>{w.title}</span>
@@ -234,11 +329,23 @@ function App(){
                         const tKey=`${gIdx}-${ti}`;
                         const isDone=!!checked[tKey];
                         return(
-                          <div key={ti} onClick={()=>toggleTask(tKey)} style={{display:"flex",gap:10,alignItems:"flex-start",padding:"8px 0 8px 8px",cursor:"pointer",opacity:isDone?0.5:1}}>
-                            <div style={{width:18,height:18,borderRadius:5,border:isDone?"none":"1.5px solid #d1d5db",background:isDone?"#22c55e":"transparent",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,marginTop:1}}>
+                          <div key={ti} style={{display:"flex",gap:10,alignItems:"flex-start",padding:"9px 0 9px 4px",borderTop:"0.5px solid #f9fafb"}}>
+                            <div onClick={e=>toggleTask(tKey,e)}
+                              style={{width:18,height:18,borderRadius:5,border:isDone?"none":"1.5px solid #d1d5db",background:isDone?"#22c55e":"transparent",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,marginTop:2,cursor:"pointer"}}>
                               {isDone&&<span style={{color:"white",fontSize:11,fontWeight:600}}>✓</span>}
                             </div>
-                            <span style={{fontSize:13,lineHeight:1.5,textDecoration:isDone?"line-through":"none"}}>{task}</span>
+                            <div style={{flex:1,minWidth:0}}>
+                              {task.url?(
+                                <a href={task.url} target="_blank" rel="noopener noreferrer" className="task-link"
+                                  style={{fontSize:13,lineHeight:1.5,color:"#4f46e5",textDecoration:isDone?"line-through":"underline",opacity:isDone?0.5:1,display:"block",wordBreak:"break-word"}}>
+                                  {task.label} ↗
+                                </a>
+                              ):(
+                                <span style={{fontSize:13,lineHeight:1.5,color:"#374151",textDecoration:isDone?"line-through":"none",opacity:isDone?0.5:1,display:"block"}}>
+                                  {task.label}
+                                </span>
+                              )}
+                            </div>
                           </div>
                         );
                       })}
@@ -256,7 +363,8 @@ function App(){
           <div className="card" style={{background:"#fff",border:"0.5px solid #e5e7eb",borderRadius:12,padding:"16px",marginBottom:12}}>
             <div style={{fontSize:14,fontWeight:500,marginBottom:8}}>Start date</div>
             <p style={{fontSize:13,color:"#6b7280",marginBottom:10}}>Set the date you began Month 1. This powers the weekly nudge messages on the dashboard.</p>
-            <input type="date" value={startDate} onChange={e=>{setStartDate(e.target.value);save(checked,e.target.value);}} style={{width:"100%",fontSize:14,padding:"8px 10px",borderRadius:8,border:"0.5px solid #d1d5db",fontFamily:"inherit"}}/>
+            <input type="date" value={startDate} onChange={e=>{setStartDate(e.target.value);save(checked,e.target.value);}}
+              style={{width:"100%",fontSize:14,padding:"8px 10px",borderRadius:8,border:"0.5px solid #d1d5db",fontFamily:"inherit"}}/>
             {startDate&&<p style={{fontSize:12,color:"#16a34a",marginTop:8}}>Start date saved. Nudges are now active on the dashboard.</p>}
           </div>
 
@@ -264,7 +372,7 @@ function App(){
             <div style={{fontSize:14,fontWeight:500,marginBottom:10}}>Google Calendar — weekly study block</div>
             {["Open Google Calendar and click your preferred study day/time","Set title: 'DevSecOps Study Session'","Set duration: 2 hours","Click 'More options' → Repeat: Every week","Add notification: 30 minutes before","Paste this app's URL in the description for one-click access","Save"].map((s,i)=>(
               <div key={i} style={{display:"flex",gap:10,marginBottom:8,alignItems:"flex-start"}}>
-                <div className="step-purple" style={{width:22,height:22,borderRadius:"50%",background:"#eef2ff",display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,fontWeight:500,color:"#4f46e5",flexShrink:0}}>{i+1}</div>
+                <div style={{width:22,height:22,borderRadius:"50%",background:"#eef2ff",display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,fontWeight:500,color:"#4f46e5",flexShrink:0}}>{i+1}</div>
                 <span style={{fontSize:13,lineHeight:1.5}}>{s}</span>
               </div>
             ))}
@@ -274,7 +382,7 @@ function App(){
             <div style={{fontSize:14,fontWeight:500,marginBottom:10}}>Gmail — weekly self-reminder</div>
             {["Open Gmail and compose a new email to yourself","Subject: 'DevSecOps — weekly check-in'","Body: What did I complete this week? What's next? Am I on track?","Click the arrow next to Send → 'Schedule send'","Pick next Monday morning (e.g. 8am)","Each week, schedule the next one — takes 2 minutes","This forces a weekly review habit"].map((s,i)=>(
               <div key={i} style={{display:"flex",gap:10,marginBottom:8,alignItems:"flex-start"}}>
-                <div className="step-green" style={{width:22,height:22,borderRadius:"50%",background:"#f0fdf4",display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,fontWeight:500,color:"#16a34a",flexShrink:0}}>{i+1}</div>
+                <div style={{width:22,height:22,borderRadius:"50%",background:"#f0fdf4",display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,fontWeight:500,color:"#16a34a",flexShrink:0}}>{i+1}</div>
                 <span style={{fontSize:13,lineHeight:1.5}}>{s}</span>
               </div>
             ))}
