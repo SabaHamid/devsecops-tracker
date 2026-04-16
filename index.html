@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>DevSecOps Learning Tracker</title>
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,sans-serif;background:#f9fafb;color:#111827;min-height:100vh}
+input[type=date]{font-family:inherit}
+a{color:inherit}
+::-webkit-scrollbar{width:6px}
+::-webkit-scrollbar-track{background:#f1f1f1}
+::-webkit-scrollbar-thumb{background:#d1d5db;border-radius:3px}
+@media(prefers-color-scheme:dark){
+  body{background:#18181b;color:#f4f4f5}
+  .card{background:#27272a!important;border-color:#3f3f46!important}
+  .nav-btn{color:#a1a1aa}
+  .nav-btn.active{background:#3f3f46!important;color:#f4f4f5!important}
+  .metric{background:#27272a!important}
+  input[type=date]{background:#27272a;color:#f4f4f5;border-color:#3f3f46}
+  .week-border{border-color:#3f3f46!important}
+  .nudge-info{background:#1e3a5f!important;border-color:#2563eb!important;color:#93c5fd!important}
+  .nudge-warn{background:#451a03!important;border-color:#92400e!important;color:#fcd34d!important}
+  .nudge-success{background:#052e16!important;border-color:#166534!important;color:#86efac!important}
+  .step-purple{background:#312e81!important;color:#a5b4fc!important}
+  .step-green{background:#052e16!important;color:#86efac!important}
+}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const{useState,useEffect}=React;
+
+const PLAN=[
+  {month:1,phase:"Phase 1",title:"Linux & Command Line Foundations",weeks:[
+    {week:1,title:"Linux orientation",tasks:["TryHackMe — Linux Fundamentals Part 1","TryHackMe — Linux Fundamentals Part 2","Navigate terminal without notes"]},
+    {week:2,title:"Linux power tools",tasks:["TryHackMe — Linux Fundamentals Part 3","YouTube — NetworkChuck Linux commands","OverTheWire Bandit Level 0–5"]},
+    {week:3,title:"Git & pipelines",tasks:["FreeCodeCamp Git & GitHub Crash Course","GitHub Docs — Understanding GitHub Actions","Read a real repo's .github/workflows folder"]},
+    {week:4,title:"Consolidate & self-assess",tasks:["OverTheWire Bandit Level 6–10","OWASP — What is DevSecOps?","Self-assessment gate check"]},
+  ]},
+  {month:2,phase:"Phase 1",title:"CI/CD Configuration & AWS Deeper Dive",weeks:[
+    {week:1,title:"Build your first pipeline",tasks:["TechWorld with Nana — GitHub Actions Tutorial","Create a repo & write a basic workflow YAML","GitHub Docs — Workflow syntax reference"]},
+    {week:2,title:"Pipeline secrets & security",tasks:["Extend pipeline with test steps","YouTube — GitHub Actions Secrets & Env Variables","GitGuardian — Top CI/CD Security Risks"]},
+    {week:3,title:"AWS IAM & S3 security",tasks:["AWS Skill Builder — Cloud Practitioner Security module","AWS Free Tier — IAM hands-on practice","AWS Docs — S3 Bucket Policies"]},
+    {week:4,title:"Connect it all",tasks:["Deploy file to S3 via GitHub Actions + IAM secrets","TryHackMe — CI/CD and Build Security room","Phase 1 gate check self-assessment"]},
+  ]},
+  {month:3,phase:"Phase 2",title:"Security Fundamentals & Security+ Study Begins",weeks:[
+    {week:1,title:"Core security concepts",tasks:["Professor Messer — Security+ Domain 1","OWASP Top 10 — Read all 10 entries","YouTube — CIA Triad Explained"]},
+    {week:2,title:"Network security & cryptography",tasks:["Professor Messer — Domain 2 Networking","YouTube — How HTTPS Works by ByteByteGo","TryHackMe — Network Fundamentals"]},
+    {week:3,title:"Authentication & identity",tasks:["Professor Messer — Domain 3 Identity & Access","TryHackMe — Authentication Bypass room","Quizlet — Create security flashcards"]},
+    {week:4,title:"Security+ baseline exam",tasks:["Jason Dion — Security+ Practice Exam (cold)","Review every wrong answer","Note 2 weakest domains"]},
+  ]},
+  {month:4,phase:"Phase 3",title:"Penetration Testing Basics",weeks:[
+    {week:1,title:"Pen testing methodology",tasks:["TCM Security — Practical Ethical Hacking (intro)","PTES — Penetration Testing Execution Standard","TryHackMe — Intro to Offensive Security"]},
+    {week:2,title:"Recon & Nmap scanning",tasks:["TCM Security — Recon & Scanning sections","TryHackMe — Nmap room","Install Nmap and scan your own machine"]},
+    {week:3,title:"Burp Suite & web app testing",tasks:["YouTube — Burp Suite for Beginners","TryHackMe — OWASP Top 10 room","OWASP WebGoat — practice injection labs"]},
+    {week:4,title:"First full CTF",tasks:["TryHackMe — Jr Penetration Tester path (start)","TryHackMe — Basic Pentesting CTF","Write a mini pen test report"]},
+  ]},
+  {month:5,phase:"Phase 4",title:"DevSecOps Integration",weeks:[
+    {week:1,title:"SAST & code scanning",tasks:["YouTube — What is SAST vs DAST? by Snyk","Semgrep — Add SAST to GitHub Actions pipeline","Snyk — Free account + scan a public repo"]},
+    {week:2,title:"Secrets & dependency security",tasks:["GitHub — Enable Secret Scanning & Dependabot","TryHackMe — OWASP Top 10 2021 room","GitGuardian — State of Secrets Sprawl report"]},
+    {week:3,title:"AWS cloud security",tasks:["YouTube — AWS Security Hub Overview","AWS Free Tier — Enable GuardDuty trial","AWS IAM Access Analyzer — run on your account"]},
+    {week:4,title:"Portfolio pipeline project",tasks:["Build pipeline with 3 security gates","Write README documenting your secure pipeline","Month 5 gate check self-assessment"]},
+  ]},
+  {month:6,phase:"Phase 4",title:"Security+ Final Prep & Exam",weeks:[
+    {week:1,title:"Weak domain blitz",tasks:["Jason Dion — Practice Exam 2nd attempt","Professor Messer — Rewatch 2 weakest domains","Quizlet — Review full flashcard deck"]},
+    {week:2,title:"PBQs & exam technique",tasks:["YouTube — Security+ PBQ Walkthrough","Jason Dion — Full timed practice exam","CompTIA — Official exam objectives skim"]},
+    {week:3,title:"Final consolidation & booking",tasks:["Jason Dion — Final practice exam (target 85%+)","Book Security+ exam via Pearson VUE","Update LinkedIn & CV with new skills"]},
+    {week:4,title:"Exam week",tasks:["Light review — all wrong answers compiled","Professor Messer — Last-Minute study notes","Take your Security+ exam"]},
+  ]},
+];
+
+const STORAGE_KEY="devsecops_v1";
+const START_KEY="devsecops_start";
+const phaseColors={"Phase 1":"#4f46e5","Phase 2":"#0891b2","Phase 3":"#dc2626","Phase 4":"#16a34a"};
+
+function getNudge(checked,startDate){
+  if(!startDate)return{msg:"Set your start date in Setup to activate weekly nudges.",type:"info"};
+  const now=new Date(),start=new Date(startDate);
+  const daysSince=Math.floor((now-start)/86400000);
+  const weekIdx=Math.min(Math.floor(daysSince/7),23);
+  const dow=daysSince%7;
+  const m=PLAN[Math.floor(weekIdx/4)],w=m?.weeks[weekIdx%4];
+  const wDone=w?.tasks.filter((_,ti)=>checked[`${weekIdx}-${ti}`]).length||0;
+  const wTotal=w?.tasks.length||0;
+  const total=PLAN.flatMap(m=>m.weeks.flatMap(w=>w.tasks)).length;
+  const done=Object.values(checked).filter(Boolean).length;
+  const pct=Math.round((done/total)*100);
+  if(dow>=3&&wDone===0)return{msg:`Midweek check-in: you haven't started this week's tasks yet. Even 30 minutes today keeps momentum alive.`,type:"warn"};
+  if(dow>=5&&wDone<wTotal)return{msg:`Weekend reminder: ${wTotal-wDone} task(s) left this week. A quick session now keeps you on track.`,type:"warn"};
+  if(wDone===wTotal&&wTotal>0)return{msg:`This week's tasks are all done! You're ${pct}% through the full plan. Great work.`,type:"success"};
+  if(done===0)return{msg:"Your journey starts with a single task. Open Month 1 and check off your first item today.",type:"info"};
+  return{msg:`You're ${pct}% through the 6-month plan. Consistency beats intensity — keep showing up.`,type:"info"};
+}
+
+function App(){
+  const[checked,setChecked]=useState({});
+  const[startDate,setStartDate]=useState("");
+  const[view,setView]=useState("dashboard");
+  const[activeMonth,setActiveMonth]=useState(0);
+  const[expandedWeeks,setExpandedWeeks]=useState({"0-0":true});
+
+  useEffect(()=>{
+    try{
+      const c=localStorage.getItem(STORAGE_KEY);
+      const d=localStorage.getItem(START_KEY);
+      if(c)setChecked(JSON.parse(c));
+      if(d)setStartDate(d);
+    }catch{}
+  },[]);
+
+  const save=(nc,nd)=>{
+    try{
+      localStorage.setItem(STORAGE_KEY,JSON.stringify(nc));
+      if(nd!==undefined)localStorage.setItem(START_KEY,nd);
+    }catch{}
+  };
+
+  const toggleTask=key=>{
+    const next={...checked,[key]:!checked[key]};
+    setChecked(next);save(next,undefined);
+  };
+  const toggleWeek=key=>setExpandedWeeks(p=>({...p,[key]:!p[key]}));
+
+  const total=PLAN.flatMap(m=>m.weeks.flatMap(w=>w.tasks)).length;
+  const done=Object.values(checked).filter(Boolean).length;
+  const pct=Math.round((done/total)*100);
+
+  const mProg=PLAN.map((m,mi)=>{
+    const keys=m.weeks.flatMap((w,wi)=>w.tasks.map((_,ti)=>`${mi*4+wi}-${ti}`));
+    const d=keys.filter(k=>checked[k]).length;
+    return{done:d,total:keys.length,pct:Math.round((d/keys.length)*100)};
+  });
+
+  const nudge=getNudge(checked,startDate);
+
+  const nudgeClass=nudge.type==="warn"?"nudge-warn":nudge.type==="success"?"nudge-success":"nudge-info";
+  const nudgeStyle={warn:{background:"#fefce8",border:"0.5px solid #fde68a",color:"#92400e"},success:{background:"#f0fdf4",border:"0.5px solid #bbf7d0",color:"#15803d"},info:{background:"#eff6ff",border:"0.5px solid #bfdbfe",color:"#1e40af"}};
+
+  return(
+    <div style={{maxWidth:700,margin:"0 auto",padding:"20px 16px"}}>
+      <div style={{marginBottom:20}}>
+        <h1 style={{fontSize:22,fontWeight:500,marginBottom:4}}>DevSecOps learning tracker</h1>
+        <p style={{fontSize:13,color:"#6b7280"}}>6-month plan · {total} tasks · CompTIA Security+ goal</p>
+      </div>
+
+      <div style={{display:"flex",gap:6,marginBottom:20,borderBottom:"0.5px solid #e5e7eb",paddingBottom:12}}>
+        {["dashboard","plan","setup"].map(v=>(
+          <button key={v} className={`nav-btn${view===v?" active":""}`} onClick={()=>setView(v)} style={{background:view===v?"#f3f4f6":"transparent",border:"0.5px solid "+(view===v?"#d1d5db":"transparent"),borderRadius:8,padding:"6px 16px",fontSize:13,cursor:"pointer",fontWeight:view===v?500:400,fontFamily:"inherit"}}>
+            {v==="dashboard"?"Dashboard":v==="plan"?"Full plan":"Setup"}
+          </button>
+        ))}
+      </div>
+
+      {view==="dashboard"&&(
+        <>
+          <div className={nudgeClass} style={{...nudgeStyle[nudge.type],borderRadius:10,padding:"10px 14px",fontSize:13,marginBottom:16}}>{nudge.msg}</div>
+
+          <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:10,marginBottom:18}}>
+            {[{label:"Overall progress",val:pct+"%",sub:`${done}/${total} tasks`},{label:"Tasks completed",val:done,sub:"across all months"},{label:"Remaining",val:total-done,sub:"tasks to finish"}].map((c,i)=>(
+              <div key={i} className="metric" style={{background:"#f9fafb",border:"0.5px solid #e5e7eb",borderRadius:10,padding:"12px 14px"}}>
+                <div style={{fontSize:12,color:"#6b7280",marginBottom:4}}>{c.label}</div>
+                <div style={{fontSize:22,fontWeight:500}}>{c.val}</div>
+                <div style={{fontSize:11,color:"#9ca3af"}}>{c.sub}</div>
+              </div>
+            ))}
+          </div>
+
+          <div className="card" style={{background:"#fff",border:"0.5px solid #e5e7eb",borderRadius:12,padding:"16px"}}>
+            <div style={{fontSize:14,fontWeight:500,marginBottom:14}}>Monthly progress</div>
+            {PLAN.map((m,i)=>(
+              <div key={i} style={{marginBottom:14}}>
+                <div style={{display:"flex",justifyContent:"space-between",fontSize:13,marginBottom:4}}>
+                  <span style={{fontWeight:500}}>Month {m.month} — {m.title}</span>
+                  <span style={{color:"#6b7280"}}>{mProg[i].done}/{mProg[i].total}</span>
+                </div>
+                <div style={{height:5,borderRadius:99,background:"#e5e7eb",overflow:"hidden"}}>
+                  <div style={{height:"100%",width:mProg[i].pct+"%",background:phaseColors[m.phase],borderRadius:99,transition:"width 0.4s"}}/>
+                </div>
+                <div style={{fontSize:11,color:"#9ca3af",marginTop:3}}>{m.phase} · {mProg[i].pct}% complete</div>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
+
+      {view==="plan"&&(
+        <>
+          <div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:14}}>
+            {PLAN.map((m,i)=>(
+              <button key={i} onClick={()=>setActiveMonth(i)} style={{background:activeMonth===i?phaseColors[m.phase]+"18":"transparent",border:"0.5px solid "+(activeMonth===i?phaseColors[m.phase]:"#e5e7eb"),borderRadius:8,padding:"5px 14px",fontSize:13,cursor:"pointer",color:activeMonth===i?phaseColors[m.phase]:"#6b7280",fontWeight:activeMonth===i?500:400,fontFamily:"inherit"}}>
+                M{m.month}
+              </button>
+            ))}
+          </div>
+
+          {(()=>{
+            const m=PLAN[activeMonth],mp=mProg[activeMonth];
+            return(
+              <div className="card" style={{background:"#fff",border:"0.5px solid #e5e7eb",borderRadius:12,padding:"16px"}}>
+                <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:10}}>
+                  <div>
+                    <div style={{fontSize:11,fontWeight:500,color:phaseColors[m.phase],textTransform:"uppercase",letterSpacing:0.5,marginBottom:3}}>{m.phase} · Month {m.month}</div>
+                    <div style={{fontSize:16,fontWeight:500}}>{m.title}</div>
+                  </div>
+                  <span style={{fontSize:13,color:"#6b7280"}}>{mp.done}/{mp.total}</span>
+                </div>
+                <div style={{height:5,borderRadius:99,background:"#e5e7eb",overflow:"hidden",marginBottom:16}}>
+                  <div style={{height:"100%",width:mp.pct+"%",background:phaseColors[m.phase],borderRadius:99,transition:"width 0.4s"}}/>
+                </div>
+                {m.weeks.map((w,wi)=>{
+                  const wKey=`${activeMonth}-${wi}`;
+                  const gIdx=activeMonth*4+wi;
+                  const wDone=w.tasks.filter((_,ti)=>checked[`${gIdx}-${ti}`]).length;
+                  const open=!!expandedWeeks[wKey];
+                  return(
+                    <div key={wi}>
+                      <div className="week-border" style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"10px 0",cursor:"pointer",borderTop:"0.5px solid #f3f4f6"}} onClick={()=>toggleWeek(wKey)}>
+                        <div>
+                          <span style={{fontSize:11,color:"#9ca3af"}}>Week {w.week} · </span>
+                          <span style={{fontSize:14,fontWeight:500}}>{w.title}</span>
+                        </div>
+                        <div style={{display:"flex",alignItems:"center",gap:8}}>
+                          <span style={{fontSize:12,color:wDone===w.tasks.length?"#16a34a":"#9ca3af"}}>{wDone}/{w.tasks.length}</span>
+                          <span style={{fontSize:11,color:"#9ca3af"}}>{open?"▲":"▼"}</span>
+                        </div>
+                      </div>
+                      {open&&w.tasks.map((task,ti)=>{
+                        const tKey=`${gIdx}-${ti}`;
+                        const isDone=!!checked[tKey];
+                        return(
+                          <div key={ti} onClick={()=>toggleTask(tKey)} style={{display:"flex",gap:10,alignItems:"flex-start",padding:"8px 0 8px 8px",cursor:"pointer",opacity:isDone?0.5:1}}>
+                            <div style={{width:18,height:18,borderRadius:5,border:isDone?"none":"1.5px solid #d1d5db",background:isDone?"#22c55e":"transparent",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,marginTop:1}}>
+                              {isDone&&<span style={{color:"white",fontSize:11,fontWeight:600}}>✓</span>}
+                            </div>
+                            <span style={{fontSize:13,lineHeight:1.5,textDecoration:isDone?"line-through":"none"}}>{task}</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  );
+                })}
+              </div>
+            );
+          })()}
+        </>
+      )}
+
+      {view==="setup"&&(
+        <>
+          <div className="card" style={{background:"#fff",border:"0.5px solid #e5e7eb",borderRadius:12,padding:"16px",marginBottom:12}}>
+            <div style={{fontSize:14,fontWeight:500,marginBottom:8}}>Start date</div>
+            <p style={{fontSize:13,color:"#6b7280",marginBottom:10}}>Set the date you began Month 1. This powers the weekly nudge messages on the dashboard.</p>
+            <input type="date" value={startDate} onChange={e=>{setStartDate(e.target.value);save(checked,e.target.value);}} style={{width:"100%",fontSize:14,padding:"8px 10px",borderRadius:8,border:"0.5px solid #d1d5db",fontFamily:"inherit"}}/>
+            {startDate&&<p style={{fontSize:12,color:"#16a34a",marginTop:8}}>Start date saved. Nudges are now active on the dashboard.</p>}
+          </div>
+
+          <div className="card" style={{background:"#fff",border:"0.5px solid #e5e7eb",borderRadius:12,padding:"16px",marginBottom:12}}>
+            <div style={{fontSize:14,fontWeight:500,marginBottom:10}}>Google Calendar — weekly study block</div>
+            {["Open Google Calendar and click your preferred study day/time","Set title: 'DevSecOps Study Session'","Set duration: 2 hours","Click 'More options' → Repeat: Every week","Add notification: 30 minutes before","Paste this app's URL in the description for one-click access","Save"].map((s,i)=>(
+              <div key={i} style={{display:"flex",gap:10,marginBottom:8,alignItems:"flex-start"}}>
+                <div className="step-purple" style={{width:22,height:22,borderRadius:"50%",background:"#eef2ff",display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,fontWeight:500,color:"#4f46e5",flexShrink:0}}>{i+1}</div>
+                <span style={{fontSize:13,lineHeight:1.5}}>{s}</span>
+              </div>
+            ))}
+          </div>
+
+          <div className="card" style={{background:"#fff",border:"0.5px solid #e5e7eb",borderRadius:12,padding:"16px",marginBottom:12}}>
+            <div style={{fontSize:14,fontWeight:500,marginBottom:10}}>Gmail — weekly self-reminder</div>
+            {["Open Gmail and compose a new email to yourself","Subject: 'DevSecOps — weekly check-in'","Body: What did I complete this week? What's next? Am I on track?","Click the arrow next to Send → 'Schedule send'","Pick next Monday morning (e.g. 8am)","Each week, schedule the next one — takes 2 minutes","This forces a weekly review habit"].map((s,i)=>(
+              <div key={i} style={{display:"flex",gap:10,marginBottom:8,alignItems:"flex-start"}}>
+                <div className="step-green" style={{width:22,height:22,borderRadius:"50%",background:"#f0fdf4",display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,fontWeight:500,color:"#16a34a",flexShrink:0}}>{i+1}</div>
+                <span style={{fontSize:13,lineHeight:1.5}}>{s}</span>
+              </div>
+            ))}
+          </div>
+
+          <div style={{...nudgeStyle.info,borderRadius:10,padding:"10px 14px",fontSize:13}}>
+            Tip: calendar block + Monday Gmail + this dashboard mid-week = 3 accountability layers that cover every reason people fall off learning plans.
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
+</script>
+</body>
+</html>
