@@ -10,7 +10,7 @@
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:system-ui,sans-serif;background:#f9fafb;color:#111827;min-height:100vh}
-input[type=date],select{font-family:inherit}
+input[type=date]{font-family:inherit}
 ::-webkit-scrollbar{width:6px}
 ::-webkit-scrollbar-track{background:#f1f1f1}
 ::-webkit-scrollbar-thumb{background:#d1d5db;border-radius:3px}
@@ -19,14 +19,13 @@ input[type=date],select{font-family:inherit}
   .card{background:#27272a!important;border-color:#3f3f46!important}
   .nav-btn.active{background:#3f3f46!important;color:#f4f4f5!important}
   .metric{background:#27272a!important;border-color:#3f3f46!important}
-  input[type=date],select{background:#27272a;color:#f4f4f5;border-color:#3f3f46}
+  input[type=date]{background:#27272a;color:#f4f4f5;border-color:#3f3f46}
   .week-sep{border-color:#3f3f46!important}
   .ai-badge{background:#312e81!important;color:#c7d2fe!important}
-  .new-badge{background:#14532d!important;color:#86efac!important}
-  .onboard{background:#27272a!important;border-color:#3f3f46!important}
-  .pace-btn{border-color:#3f3f46!important;color:#a1a1aa!important}
-  .pace-btn.selected{background:#4f46e5!important;border-color:#4f46e5!important;color:#fff!important}
-  .phase-bar{background:#27272a!important;border-color:#3f3f46!important}
+  .pace-opt.sel{background:#4f46e5!important;border-color:#4f46e5!important;color:#fff!important}
+  .phase-banner{background:#27272a!important;border-color:#3f3f46!important}
+  .wk-card{background:#27272a!important;border-color:#3f3f46!important}
+  .src-tag{background:#3f3f46!important;color:#a1a1aa!important}
 }
 </style>
 </head>
@@ -35,179 +34,137 @@ input[type=date],select{font-family:inherit}
 <script type="text/babel">
 const{useState,useEffect}=React;
 
+// ── Pace configs ──────────────────────────────────────────────
+// tasksPerWeek = how many tasks fit comfortably per week at this pace
 const PACES=[
-  {id:"casual",label:"1–2 hrs / week",hrs:1.5,desc:"Light pace — plan stretches to ~9 months",months:9},
-  {id:"steady",label:"2–3 hrs / week",hrs:2.5,desc:"Steady pace — complete in 6 months",months:6},
-  {id:"serious",label:"4–5 hrs / week",hrs:4.5,desc:"Serious pace — complete in ~4 months",months:4},
-  {id:"intensive",label:"6+ hrs / week",hrs:6,desc:"Intensive pace — complete in ~3 months",months:3},
+  {id:"casual",  label:"1–2 hrs/wk", tasksPerWeek:3, desc:"Relaxed — finishes in ~32 weeks"},
+  {id:"steady",  label:"2–3 hrs/wk", tasksPerWeek:5, desc:"Steady — finishes in ~20 weeks"},
+  {id:"serious", label:"4–5 hrs/wk", tasksPerWeek:9, desc:"Serious — finishes in ~11 weeks"},
+  {id:"intensive",label:"6+ hrs/wk", tasksPerWeek:13,desc:"Intensive — finishes in ~8 weeks"},
 ];
 
-const PLAN=[
-  {month:1,phase:"Phase 1",title:"Linux & Command Line Foundations",weeks:[
-    {week:1,title:"Linux orientation",tasks:[
-      {label:"TryHackMe — Linux Fundamentals Part 1",url:"https://tryhackme.com/room/linuxfundamentalspart1"},
-      {label:"YouTube — Linux Fundamentals Part 2 walkthrough",url:"https://www.youtube.com/watch?v=yrGEce6Z4WU"},
-      {label:"Navigate terminal without notes",url:null},
-      {label:"🤖 AI: Ask Claude to explain any confusing Linux command with 3 real-world use cases",url:"https://claude.ai",ai:true},
-    ]},
-    {week:2,title:"Linux power tools",tasks:[
-      {label:"TryHackMe — Linux Fundamentals Part 3",url:"https://tryhackme.com/room/linuxfundamentalspart3"},
-      {label:"YouTube — NetworkChuck Linux commands",url:"https://www.youtube.com/watch?v=rrB13utjYV4"},
-      {label:"OverTheWire — Bandit Level 0–5",url:"https://overthewire.org/wargames/bandit/"},
-      {label:"🤖 AI: Ask Claude for hints on stuck Bandit levels without spoiling the answer",url:"https://claude.ai",ai:true},
-    ]},
-    {week:3,title:"Git & pipelines",tasks:[
-      {label:"FreeCodeCamp — Git & GitHub Crash Course",url:"https://www.youtube.com/watch?v=RGOj5yH7evk"},
-      {label:"GitHub Docs — Understanding GitHub Actions",url:"https://docs.github.com/en/actions/learn-github-actions/understanding-github-actions"},
-      {label:"Read a real repo's .github/workflows folder",url:"https://github.com"},
-      {label:"🤖 AI: Paste a GitHub Actions YAML into Claude — 'explain what each section does'",url:"https://claude.ai",ai:true},
-    ]},
-    {week:4,title:"Consolidate & self-assess",tasks:[
-      {label:"OverTheWire — Bandit Level 6–10",url:"https://overthewire.org/wargames/bandit/"},
-      {label:"OWASP — What is DevSecOps?",url:"https://owasp.org/www-project-devsecops-guideline/"},
-      {label:"Self-assessment gate check",url:null},
-      {label:"🤖 AI: Ask Claude to quiz you on Linux commands — 10 questions one at a time",url:"https://claude.ai",ai:true},
-    ]},
-  ]},
-  {month:2,phase:"Phase 1",title:"CI/CD, AWS & Docker Security",weeks:[
-    {week:1,title:"Build your first pipeline",tasks:[
-      {label:"TechWorld with Nana — GitHub Actions Tutorial",url:"https://www.youtube.com/watch?v=R8_veQiYBjI"},
-      {label:"GitHub — Create a repo & write a basic workflow YAML",url:"https://github.com"},
-      {label:"GitHub Docs — Workflow syntax reference",url:"https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions"},
-      {label:"🤖 AI: Paste your pipeline YAML into Claude — 'what could go wrong?'",url:"https://claude.ai",ai:true},
-    ]},
-    {week:2,title:"Pipeline secrets & security",tasks:[
-      {label:"GitHub — Extend pipeline with test steps",url:"https://github.com"},
-      {label:"YouTube — GitHub Actions Secrets & Env Variables",url:"https://www.youtube.com/watch?v=IuRjt3yUHbk"},
-      {label:"GitGuardian — Top CI/CD Security Risks",url:"https://blog.gitguardian.com/top-cicd-security-risks/"},
-      {label:"🤖 AI: Ask Claude for 5 examples of secrets accidentally committed to GitHub",url:"https://claude.ai",ai:true},
-    ]},
-    {week:3,title:"AWS IAM & S3 security",tasks:[
-      {label:"AWS Skill Builder — Cloud Practitioner Essentials (Security module)",url:"https://explore.skillbuilder.aws/learn/course/external/view/elearning/134/aws-cloud-practitioner-essentials"},
-      {label:"AWS Free Tier — IAM hands-on practice",url:"https://aws.amazon.com/free/"},
-      {label:"AWS Docs — S3 Bucket Policies & Block Public Access",url:"https://docs.aws.amazon.com/AmazonS3/latest/userguide/access-control-block-public-access.html"},
-      {label:"🤖 AI: Ask Claude to explain AWS IAM least privilege with examples",url:"https://claude.ai",ai:true},
-    ]},
-    {week:4,title:"Docker container security",isNew:true,tasks:[
-      {label:"YouTube — Docker Tutorial for Beginners by TechWorld with Nana",url:"https://www.youtube.com/watch?v=3c-iBn73dDE",isNew:true},
-      {label:"OWASP — Docker Security Cheat Sheet",url:"https://cheatsheetseries.owasp.org/cheatsheets/Docker_Security_Cheat_Sheet.html",isNew:true},
-      {label:"Trivy — Install & scan a Docker image for vulnerabilities",url:"https://aquasecurity.github.io/trivy/latest/getting-started/installation/",isNew:true},
-      {label:"Add Trivy container scan to your GitHub Actions pipeline",url:null,isNew:true},
-      {label:"🤖 AI: Ask Claude to review a Dockerfile for security issues",url:"https://claude.ai",ai:true,isNew:true},
-    ]},
-  ]},
-  {month:3,phase:"Phase 2",title:"Security Fundamentals & Threat Modelling",weeks:[
-    {week:1,title:"Core security + threat modelling",isNew:true,tasks:[
-      {label:"Professor Messer — Security+ Domain 1: Threats & Vulnerabilities",url:"https://www.professormesser.com/security-plus/sy0-701/sy0-701-video/sy0-701-comptia-security-plus-course/"},
-      {label:"OWASP Top 10 — Official list & descriptions",url:"https://owasp.org/www-project-top-ten/"},
-      {label:"YouTube — CIA Triad Explained by Professor Messer",url:"https://www.youtube.com/watch?v=SBcDGb9l6yo"},
-      {label:"Microsoft — STRIDE Threat Modelling explained",url:"https://learn.microsoft.com/en-us/azure/security/develop/threat-modeling-tool-threats",isNew:true},
-      {label:"OWASP Threat Dragon — model a simple web app",url:"https://owasp.org/www-project-threat-dragon/",isNew:true},
-      {label:"🤖 AI: Ask Claude to build a STRIDE threat model for a web app",url:"https://claude.ai",ai:true,isNew:true},
-    ]},
-    {week:2,title:"Network security & cryptography",tasks:[
-      {label:"Professor Messer — Domain 2: Architecture & Networking",url:"https://www.professormesser.com/security-plus/sy0-701/sy0-701-video/sy0-701-comptia-security-plus-course/"},
-      {label:"YouTube — How HTTPS Works by ByteByteGo",url:"https://www.youtube.com/watch?v=j9QmMEWmcfo"},
-      {label:"TryHackMe — Pre-Security Network Fundamentals",url:"https://tryhackme.com/room/whatisnetworking"},
-      {label:"🤖 AI: Ask Claude to quiz you — 10 Security+ questions on network security",url:"https://claude.ai",ai:true},
-    ]},
-    {week:3,title:"Authentication & identity",tasks:[
-      {label:"Professor Messer — Domain 3: Identity & Access Management",url:"https://www.professormesser.com/security-plus/sy0-701/sy0-701-video/sy0-701-comptia-security-plus-course/"},
-      {label:"TryHackMe — Authentication Bypass room",url:"https://tryhackme.com/room/authenticationbypass"},
-      {label:"Quizlet — Create security flashcards",url:"https://quizlet.com"},
-      {label:"🤖 AI: Ask Claude to generate 20 Security+ flashcard Q&As on authentication",url:"https://claude.ai",ai:true},
-    ]},
-    {week:4,title:"Security+ baseline exam",tasks:[
-      {label:"Jason Dion — Security+ Practice Exam (cold attempt)",url:"https://www.udemy.com/course/comptia-security-practice-exams/"},
-      {label:"Review every wrong answer with explanation",url:null},
-      {label:"Note 2 weakest domains & set improvement target",url:null},
-      {label:"🤖 AI: Tell Claude your 2 weakest domains — ask for a focused study plan",url:"https://claude.ai",ai:true},
-    ]},
-  ]},
-  {month:4,phase:"Phase 3",title:"Penetration Testing Basics",weeks:[
-    {week:1,title:"Pen testing methodology",tasks:[
-      {label:"TCM Security — Practical Ethical Hacking (intro + methodology)",url:"https://www.udemy.com/course/practical-ethical-hacking/"},
-      {label:"PTES — Penetration Testing Execution Standard",url:"http://www.pentest-standard.org/index.php/Main_Page"},
-      {label:"TryHackMe — Intro to Offensive Security",url:"https://tryhackme.com/room/introtooffensivesecurity"},
-      {label:"🤖 AI: Ask Claude to explain pen testing methodology mapped to QA phases",url:"https://claude.ai",ai:true},
-    ]},
-    {week:2,title:"Recon & Nmap scanning",tasks:[
-      {label:"TCM Security — Reconnaissance & Scanning sections",url:"https://www.udemy.com/course/practical-ethical-hacking/"},
-      {label:"TryHackMe — Nmap room",url:"https://tryhackme.com/room/furthernmap"},
-      {label:"Download Nmap & scan your own machine (127.0.0.1)",url:"https://nmap.org/download.html"},
-      {label:"🤖 AI: Paste your Nmap scan output into Claude — 'interpret these results'",url:"https://claude.ai",ai:true},
-    ]},
-    {week:3,title:"Burp Suite & web app testing",tasks:[
-      {label:"YouTube — Burp Suite for Beginners by TechHax",url:"https://www.youtube.com/watch?v=G3hpAeoZ4ek"},
-      {label:"TryHackMe — OWASP Top 10 room",url:"https://tryhackme.com/room/owasptop10"},
-      {label:"OWASP WebGoat — deliberately vulnerable app",url:"https://owasp.org/www-project-webgoat/"},
-      {label:"🤖 AI: Paste an intercepted HTTP request into Claude — 'what attack vectors should I test?'",url:"https://claude.ai",ai:true},
-    ]},
-    {week:4,title:"First full CTF",tasks:[
-      {label:"TryHackMe — Jr Penetration Tester path (start)",url:"https://tryhackme.com/path/outline/jrpenetrationtester"},
-      {label:"TryHackMe — Basic Pentesting CTF room",url:"https://tryhackme.com/room/basicpentestingjt"},
-      {label:"Write a mini pen test report",url:null},
-      {label:"🤖 AI: Paste your CTF notes into Claude — 'turn these into a professional pen test report'",url:"https://claude.ai",ai:true},
-    ]},
-  ]},
-  {month:5,phase:"Phase 4",title:"DevSecOps Integration + Incident Response",weeks:[
-    {week:1,title:"SAST & code scanning",tasks:[
-      {label:"YouTube — What is SAST vs DAST? by Snyk",url:"https://www.youtube.com/watch?v=_IXBqBMDheE"},
-      {label:"Semgrep — Add SAST scanning to your GitHub Actions pipeline",url:"https://semgrep.dev/docs/semgrep-ci/overview/"},
-      {label:"Snyk — Create free account & scan a public repo",url:"https://snyk.io"},
-      {label:"🤖 AI: Paste a Snyk/Semgrep finding into Claude — 'explain this vulnerability and how to fix it'",url:"https://claude.ai",ai:true},
-    ]},
-    {week:2,title:"Secrets & dependency security",tasks:[
-      {label:"GitHub — Enable Secret Scanning & Dependabot",url:"https://docs.github.com/en/code-security/secret-scanning/about-secret-scanning"},
-      {label:"TryHackMe — OWASP Top 10 2021 room",url:"https://tryhackme.com/room/owasptop102021"},
-      {label:"GitGuardian — State of Secrets Sprawl report",url:"https://www.gitguardian.com/state-of-secrets-sprawl"},
-      {label:"🤖 AI: Paste your pipeline YAML into Claude — 'identify every security risk and misconfiguration'",url:"https://claude.ai",ai:true},
-    ]},
-    {week:3,title:"Incident response basics",isNew:true,tasks:[
-      {label:"YouTube — Incident Response Process explained (PICERL)",url:"https://www.youtube.com/watch?v=rDbCnI8hBaA",isNew:true},
-      {label:"TryHackMe — Incident Response room",url:"https://tryhackme.com/room/ir",isNew:true},
-      {label:"NIST — Computer Security Incident Handling Guide (summary)",url:"https://www.nist.gov/publications/computer-security-incident-handling-guide",isNew:true},
-      {label:"Write an IR runbook for a 'leaked secret in GitHub' scenario",url:null,isNew:true},
-      {label:"🤖 AI: Ask Claude to walk through responding to a GuardDuty unusual IAM activity alert",url:"https://claude.ai",ai:true,isNew:true},
-    ]},
-    {week:4,title:"AWS security + portfolio project",tasks:[
-      {label:"YouTube — AWS Security Hub Overview",url:"https://www.youtube.com/watch?v=o0NDi01YPXs"},
-      {label:"AWS — Enable GuardDuty (30-day trial)",url:"https://aws.amazon.com/guardduty/"},
-      {label:"Build pipeline with 3 security gates (Semgrep + Snyk + Trivy) + write README",url:"https://github.com"},
-      {label:"Month 5 gate check self-assessment",url:null},
-      {label:"🤖 AI: Ask Claude to help write a 200-word hiring manager description of your pipeline project",url:"https://claude.ai",ai:true},
-    ]},
-  ]},
-  {month:6,phase:"Phase 4",title:"Security+ Final Prep, Compliance & Exam",weeks:[
-    {week:1,title:"Weak domain blitz",tasks:[
-      {label:"Jason Dion — Security+ Practice Exam (2nd attempt)",url:"https://www.udemy.com/course/comptia-security-practice-exams/"},
-      {label:"Professor Messer — Rewatch your 2 weakest domains",url:"https://www.professormesser.com/security-plus/sy0-701/sy0-701-video/sy0-701-comptia-security-plus-course/"},
-      {label:"Quizlet — Review full flashcard deck",url:"https://quizlet.com"},
-      {label:"🤖 AI: Ask Claude to aggressively quiz you on your weakest domains",url:"https://claude.ai",ai:true},
-    ]},
-    {week:2,title:"PBQs & exam technique",tasks:[
-      {label:"YouTube — Security+ PBQ Walkthrough by Professor Messer",url:"https://www.youtube.com/watch?v=_nyZhYnCNLA"},
-      {label:"Jason Dion — Full timed practice exam (new set)",url:"https://www.udemy.com/course/comptia-security-practice-exams/"},
-      {label:"CompTIA — Official Security+ exam objectives (skim)",url:"https://www.comptia.org/training/resources/exam-objectives"},
-      {label:"🤖 AI: Ask Claude to give you 5 PBQ scenarios with step-by-step walkthroughs",url:"https://claude.ai",ai:true},
-    ]},
-    {week:3,title:"Compliance awareness + final prep",isNew:true,tasks:[
-      {label:"YouTube — SOC2 Explained in 5 minutes",url:"https://www.youtube.com/watch?v=6RBORTY8z9c",isNew:true},
-      {label:"YouTube — ISO 27001 Explained",url:"https://www.youtube.com/watch?v=FDqVRRsLgBQ",isNew:true},
-      {label:"OWASP — DevSecOps & Compliance guide",url:"https://owasp.org/www-project-devsecops-guideline/latest/01b-Compliance-Auditing",isNew:true},
-      {label:"Jason Dion — Final full practice exam (target 85%+)",url:"https://www.udemy.com/course/comptia-security-practice-exams/"},
-      {label:"Book Security+ exam via Pearson VUE",url:"https://home.pearsonvue.com/comptia"},
-      {label:"Update LinkedIn & CV with all new skills",url:"https://linkedin.com"},
-      {label:"🤖 AI: Ask Claude how SOC2 and ISO27001 map to a DevSecOps pipeline",url:"https://claude.ai",ai:true,isNew:true},
-      {label:"🤖 AI: Ask Claude to rewrite your LinkedIn summary to highlight your DevSecOps transition",url:"https://claude.ai",ai:true},
-    ]},
-    {week:4,title:"Exam week",tasks:[
-      {label:"Light review — compile all wrong answers from practice exams",url:null},
-      {label:"Professor Messer — Last-Minute Security+ study notes",url:"https://www.professormesser.com/security-plus/sy0-701/sy0-701-study-groups/"},
-      {label:"Take your Security+ exam via Pearson VUE 🎯",url:"https://home.pearsonvue.com/comptia"},
-      {label:"🤖 AI: Night before — ask Claude for a 10-minute rapid-fire review of most tested concepts",url:"https://claude.ai",ai:true},
-    ]},
-  ]},
+// ── All tasks flat list ──────────────────────────────────────
+const ALL_TASKS=[
+  // ── Month 1 ──
+  {id:"m1w1t1",milestone:1,origWeek:1,label:"TryHackMe — Linux Fundamentals Part 1",url:"https://tryhackme.com/room/linuxfundamentalspart1"},
+  {id:"m1w1t2",milestone:1,origWeek:1,label:"YouTube — Linux Fundamentals Part 2 walkthrough",url:"https://www.youtube.com/watch?v=yrGEce6Z4WU"},
+  {id:"m1w1t3",milestone:1,origWeek:1,label:"Navigate terminal without notes",url:null},
+  {id:"m1w1t4",milestone:1,origWeek:1,label:"🤖 AI: Ask Claude to explain any confusing Linux command with 3 real-world use cases",url:"https://claude.ai",ai:true},
+  {id:"m1w2t1",milestone:1,origWeek:2,label:"TryHackMe — Linux Fundamentals Part 3",url:"https://tryhackme.com/room/linuxfundamentalspart3"},
+  {id:"m1w2t2",milestone:1,origWeek:2,label:"YouTube — NetworkChuck Linux commands",url:"https://www.youtube.com/watch?v=rrB13utjYV4"},
+  {id:"m1w2t3",milestone:1,origWeek:2,label:"OverTheWire — Bandit Level 0–5",url:"https://overthewire.org/wargames/bandit/"},
+  {id:"m1w2t4",milestone:1,origWeek:2,label:"🤖 AI: Ask Claude for hints on stuck Bandit levels",url:"https://claude.ai",ai:true},
+  {id:"m1w3t1",milestone:1,origWeek:3,label:"FreeCodeCamp — Git & GitHub Crash Course",url:"https://www.youtube.com/watch?v=RGOj5yH7evk"},
+  {id:"m1w3t2",milestone:1,origWeek:3,label:"GitHub Docs — Understanding GitHub Actions",url:"https://docs.github.com/en/actions/learn-github-actions/understanding-github-actions"},
+  {id:"m1w3t3",milestone:1,origWeek:3,label:"Read a real repo's .github/workflows folder",url:"https://github.com"},
+  {id:"m1w3t4",milestone:1,origWeek:3,label:"🤖 AI: Paste a GitHub Actions YAML into Claude — 'explain what each section does'",url:"https://claude.ai",ai:true},
+  {id:"m1w4t1",milestone:1,origWeek:4,label:"OverTheWire — Bandit Level 6–10",url:"https://overthewire.org/wargames/bandit/"},
+  {id:"m1w4t2",milestone:1,origWeek:4,label:"OWASP — What is DevSecOps?",url:"https://owasp.org/www-project-devsecops-guideline/"},
+  {id:"m1w4t3",milestone:1,origWeek:4,label:"Self-assessment gate check — Month 1",url:null},
+  {id:"m1w4t4",milestone:1,origWeek:4,label:"🤖 AI: Ask Claude to quiz you on Linux commands — 10 questions one at a time",url:"https://claude.ai",ai:true},
+  // ── Month 2 ──
+  {id:"m2w1t1",milestone:2,origWeek:5,label:"TechWorld with Nana — GitHub Actions Tutorial",url:"https://www.youtube.com/watch?v=R8_veQiYBjI"},
+  {id:"m2w1t2",milestone:2,origWeek:5,label:"GitHub — Create a repo & write a basic workflow YAML",url:"https://github.com"},
+  {id:"m2w1t3",milestone:2,origWeek:5,label:"GitHub Docs — Workflow syntax reference",url:"https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions"},
+  {id:"m2w1t4",milestone:2,origWeek:5,label:"🤖 AI: Paste your pipeline YAML into Claude — 'what could go wrong?'",url:"https://claude.ai",ai:true},
+  {id:"m2w2t1",milestone:2,origWeek:6,label:"GitHub — Extend pipeline with test steps",url:"https://github.com"},
+  {id:"m2w2t2",milestone:2,origWeek:6,label:"YouTube — GitHub Actions Secrets & Env Variables",url:"https://www.youtube.com/watch?v=IuRjt3yUHbk"},
+  {id:"m2w2t3",milestone:2,origWeek:6,label:"GitGuardian — Top CI/CD Security Risks",url:"https://blog.gitguardian.com/top-cicd-security-risks/"},
+  {id:"m2w2t4",milestone:2,origWeek:6,label:"🤖 AI: Ask Claude for 5 examples of secrets accidentally committed to GitHub",url:"https://claude.ai",ai:true},
+  {id:"m2w3t1",milestone:2,origWeek:7,label:"AWS Skill Builder — Cloud Practitioner Essentials (Security module)",url:"https://explore.skillbuilder.aws/learn/course/external/view/elearning/134/aws-cloud-practitioner-essentials"},
+  {id:"m2w3t2",milestone:2,origWeek:7,label:"AWS Free Tier — IAM hands-on practice",url:"https://aws.amazon.com/free/"},
+  {id:"m2w3t3",milestone:2,origWeek:7,label:"AWS Docs — S3 Bucket Policies & Block Public Access",url:"https://docs.aws.amazon.com/AmazonS3/latest/userguide/access-control-block-public-access.html"},
+  {id:"m2w3t4",milestone:2,origWeek:7,label:"🤖 AI: Ask Claude to explain AWS IAM least privilege with examples",url:"https://claude.ai",ai:true},
+  {id:"m2w4t1",milestone:2,origWeek:8,label:"YouTube — Docker Tutorial for Beginners by TechWorld with Nana",url:"https://www.youtube.com/watch?v=3c-iBn73dDE",isNew:true},
+  {id:"m2w4t2",milestone:2,origWeek:8,label:"OWASP — Docker Security Cheat Sheet",url:"https://cheatsheetseries.owasp.org/cheatsheets/Docker_Security_Cheat_Sheet.html",isNew:true},
+  {id:"m2w4t3",milestone:2,origWeek:8,label:"Trivy — Install & scan a Docker image for vulnerabilities",url:"https://aquasecurity.github.io/trivy/latest/getting-started/installation/",isNew:true},
+  {id:"m2w4t4",milestone:2,origWeek:8,label:"Add Trivy container scan to your GitHub Actions pipeline",url:null,isNew:true},
+  {id:"m2w4t5",milestone:2,origWeek:8,label:"🤖 AI: Ask Claude to review a Dockerfile for security issues",url:"https://claude.ai",ai:true,isNew:true},
+  // ── Month 3 ──
+  {id:"m3w1t1",milestone:3,origWeek:9,label:"Professor Messer — Security+ Domain 1: Threats & Vulnerabilities",url:"https://www.professormesser.com/security-plus/sy0-701/sy0-701-video/sy0-701-comptia-security-plus-course/"},
+  {id:"m3w1t2",milestone:3,origWeek:9,label:"OWASP Top 10 — Official list & descriptions",url:"https://owasp.org/www-project-top-ten/"},
+  {id:"m3w1t3",milestone:3,origWeek:9,label:"YouTube — CIA Triad Explained by Professor Messer",url:"https://www.youtube.com/watch?v=SBcDGb9l6yo"},
+  {id:"m3w1t4",milestone:3,origWeek:9,label:"Microsoft — STRIDE Threat Modelling explained",url:"https://learn.microsoft.com/en-us/azure/security/develop/threat-modeling-tool-threats",isNew:true},
+  {id:"m3w1t5",milestone:3,origWeek:9,label:"OWASP Threat Dragon — model a simple web app",url:"https://owasp.org/www-project-threat-dragon/",isNew:true},
+  {id:"m3w1t6",milestone:3,origWeek:9,label:"🤖 AI: Ask Claude to build a STRIDE threat model for a web app",url:"https://claude.ai",ai:true,isNew:true},
+  {id:"m3w2t1",milestone:3,origWeek:10,label:"Professor Messer — Domain 2: Architecture & Networking",url:"https://www.professormesser.com/security-plus/sy0-701/sy0-701-video/sy0-701-comptia-security-plus-course/"},
+  {id:"m3w2t2",milestone:3,origWeek:10,label:"YouTube — How HTTPS Works by ByteByteGo",url:"https://www.youtube.com/watch?v=j9QmMEWmcfo"},
+  {id:"m3w2t3",milestone:3,origWeek:10,label:"TryHackMe — Pre-Security Network Fundamentals",url:"https://tryhackme.com/room/whatisnetworking"},
+  {id:"m3w2t4",milestone:3,origWeek:10,label:"🤖 AI: Ask Claude to quiz you — 10 Security+ questions on network security",url:"https://claude.ai",ai:true},
+  {id:"m3w3t1",milestone:3,origWeek:11,label:"Professor Messer — Domain 3: Identity & Access Management",url:"https://www.professormesser.com/security-plus/sy0-701/sy0-701-video/sy0-701-comptia-security-plus-course/"},
+  {id:"m3w3t2",milestone:3,origWeek:11,label:"TryHackMe — Authentication Bypass room",url:"https://tryhackme.com/room/authenticationbypass"},
+  {id:"m3w3t3",milestone:3,origWeek:11,label:"Quizlet — Create security flashcards",url:"https://quizlet.com"},
+  {id:"m3w3t4",milestone:3,origWeek:11,label:"🤖 AI: Ask Claude to generate 20 Security+ flashcard Q&As on authentication",url:"https://claude.ai",ai:true},
+  {id:"m3w4t1",milestone:3,origWeek:12,label:"Jason Dion — Security+ Practice Exam (cold attempt)",url:"https://www.udemy.com/course/comptia-security-practice-exams/"},
+  {id:"m3w4t2",milestone:3,origWeek:12,label:"Review every wrong answer with explanation",url:null},
+  {id:"m3w4t3",milestone:3,origWeek:12,label:"Note 2 weakest domains & set improvement target",url:null},
+  {id:"m3w4t4",milestone:3,origWeek:12,label:"🤖 AI: Tell Claude your 2 weakest domains — ask for a focused study plan",url:"https://claude.ai",ai:true},
+  // ── Month 4 ──
+  {id:"m4w1t1",milestone:4,origWeek:13,label:"TCM Security — Practical Ethical Hacking (intro + methodology)",url:"https://www.udemy.com/course/practical-ethical-hacking/"},
+  {id:"m4w1t2",milestone:4,origWeek:13,label:"PTES — Penetration Testing Execution Standard",url:"http://www.pentest-standard.org/index.php/Main_Page"},
+  {id:"m4w1t3",milestone:4,origWeek:13,label:"TryHackMe — Intro to Offensive Security",url:"https://tryhackme.com/room/introtooffensivesecurity"},
+  {id:"m4w1t4",milestone:4,origWeek:13,label:"🤖 AI: Ask Claude to explain pen testing methodology mapped to QA phases",url:"https://claude.ai",ai:true},
+  {id:"m4w2t1",milestone:4,origWeek:14,label:"TCM Security — Reconnaissance & Scanning sections",url:"https://www.udemy.com/course/practical-ethical-hacking/"},
+  {id:"m4w2t2",milestone:4,origWeek:14,label:"TryHackMe — Nmap room",url:"https://tryhackme.com/room/furthernmap"},
+  {id:"m4w2t3",milestone:4,origWeek:14,label:"Download Nmap & scan your own machine (127.0.0.1)",url:"https://nmap.org/download.html"},
+  {id:"m4w2t4",milestone:4,origWeek:14,label:"🤖 AI: Paste your Nmap scan output into Claude — 'interpret these results'",url:"https://claude.ai",ai:true},
+  {id:"m4w3t1",milestone:4,origWeek:15,label:"YouTube — Burp Suite for Beginners by TechHax",url:"https://www.youtube.com/watch?v=G3hpAeoZ4ek"},
+  {id:"m4w3t2",milestone:4,origWeek:15,label:"TryHackMe — OWASP Top 10 room",url:"https://tryhackme.com/room/owasptop10"},
+  {id:"m4w3t3",milestone:4,origWeek:15,label:"OWASP WebGoat — deliberately vulnerable app",url:"https://owasp.org/www-project-webgoat/"},
+  {id:"m4w3t4",milestone:4,origWeek:15,label:"🤖 AI: Paste an intercepted HTTP request into Claude — 'what attack vectors should I test?'",url:"https://claude.ai",ai:true},
+  {id:"m4w4t1",milestone:4,origWeek:16,label:"TryHackMe — Jr Penetration Tester path (start)",url:"https://tryhackme.com/path/outline/jrpenetrationtester"},
+  {id:"m4w4t2",milestone:4,origWeek:16,label:"TryHackMe — Basic Pentesting CTF room",url:"https://tryhackme.com/room/basicpentestingjt"},
+  {id:"m4w4t3",milestone:4,origWeek:16,label:"Write a mini pen test report",url:null},
+  {id:"m4w4t4",milestone:4,origWeek:16,label:"🤖 AI: Paste your CTF notes into Claude — 'turn these into a professional pen test report'",url:"https://claude.ai",ai:true},
+  // ── Month 5 ──
+  {id:"m5w1t1",milestone:5,origWeek:17,label:"YouTube — What is SAST vs DAST? by Snyk",url:"https://www.youtube.com/watch?v=_IXBqBMDheE"},
+  {id:"m5w1t2",milestone:5,origWeek:17,label:"Semgrep — Add SAST scanning to your GitHub Actions pipeline",url:"https://semgrep.dev/docs/semgrep-ci/overview/"},
+  {id:"m5w1t3",milestone:5,origWeek:17,label:"Snyk — Create free account & scan a public repo",url:"https://snyk.io"},
+  {id:"m5w1t4",milestone:5,origWeek:17,label:"🤖 AI: Paste a Snyk/Semgrep finding into Claude — 'explain this vulnerability'",url:"https://claude.ai",ai:true},
+  {id:"m5w2t1",milestone:5,origWeek:18,label:"GitHub — Enable Secret Scanning & Dependabot",url:"https://docs.github.com/en/code-security/secret-scanning/about-secret-scanning"},
+  {id:"m5w2t2",milestone:5,origWeek:18,label:"TryHackMe — OWASP Top 10 2021 room",url:"https://tryhackme.com/room/owasptop102021"},
+  {id:"m5w2t3",milestone:5,origWeek:18,label:"GitGuardian — State of Secrets Sprawl report",url:"https://www.gitguardian.com/state-of-secrets-sprawl"},
+  {id:"m5w2t4",milestone:5,origWeek:18,label:"🤖 AI: Paste your pipeline YAML into Claude — 'identify every security risk'",url:"https://claude.ai",ai:true},
+  {id:"m5w3t1",milestone:5,origWeek:19,label:"YouTube — Incident Response Process explained (PICERL)",url:"https://www.youtube.com/watch?v=rDbCnI8hBaA",isNew:true},
+  {id:"m5w3t2",milestone:5,origWeek:19,label:"TryHackMe — Incident Response room",url:"https://tryhackme.com/room/ir",isNew:true},
+  {id:"m5w3t3",milestone:5,origWeek:19,label:"NIST — Computer Security Incident Handling Guide",url:"https://www.nist.gov/publications/computer-security-incident-handling-guide",isNew:true},
+  {id:"m5w3t4",milestone:5,origWeek:19,label:"Write an IR runbook for a 'leaked secret in GitHub' scenario",url:null,isNew:true},
+  {id:"m5w3t5",milestone:5,origWeek:19,label:"🤖 AI: Ask Claude to walk through responding to a GuardDuty alert step by step",url:"https://claude.ai",ai:true,isNew:true},
+  {id:"m5w4t1",milestone:5,origWeek:20,label:"YouTube — AWS Security Hub Overview",url:"https://www.youtube.com/watch?v=o0NDi01YPXs"},
+  {id:"m5w4t2",milestone:5,origWeek:20,label:"AWS — Enable GuardDuty (30-day trial)",url:"https://aws.amazon.com/guardduty/"},
+  {id:"m5w4t3",milestone:5,origWeek:20,label:"Build pipeline with 3 security gates + write README",url:"https://github.com"},
+  {id:"m5w4t4",milestone:5,origWeek:20,label:"Month 5 gate check self-assessment",url:null},
+  {id:"m5w4t5",milestone:5,origWeek:20,label:"🤖 AI: Ask Claude to write a hiring manager description of your pipeline project",url:"https://claude.ai",ai:true},
+  // ── Month 6 ──
+  {id:"m6w1t1",milestone:6,origWeek:21,label:"Jason Dion — Security+ Practice Exam (2nd attempt)",url:"https://www.udemy.com/course/comptia-security-practice-exams/"},
+  {id:"m6w1t2",milestone:6,origWeek:21,label:"Professor Messer — Rewatch your 2 weakest domains",url:"https://www.professormesser.com/security-plus/sy0-701/sy0-701-video/sy0-701-comptia-security-plus-course/"},
+  {id:"m6w1t3",milestone:6,origWeek:21,label:"Quizlet — Review full flashcard deck",url:"https://quizlet.com"},
+  {id:"m6w1t4",milestone:6,origWeek:21,label:"🤖 AI: Ask Claude to aggressively quiz you on your weakest domains",url:"https://claude.ai",ai:true},
+  {id:"m6w2t1",milestone:6,origWeek:22,label:"YouTube — Security+ PBQ Walkthrough by Professor Messer",url:"https://www.youtube.com/watch?v=_nyZhYnCNLA"},
+  {id:"m6w2t2",milestone:6,origWeek:22,label:"Jason Dion — Full timed practice exam (new set)",url:"https://www.udemy.com/course/comptia-security-practice-exams/"},
+  {id:"m6w2t3",milestone:6,origWeek:22,label:"CompTIA — Official Security+ exam objectives (skim)",url:"https://www.comptia.org/training/resources/exam-objectives"},
+  {id:"m6w2t4",milestone:6,origWeek:22,label:"🤖 AI: Ask Claude to give you 5 PBQ scenarios with step-by-step walkthroughs",url:"https://claude.ai",ai:true},
+  {id:"m6w3t1",milestone:6,origWeek:23,label:"YouTube — SOC2 Explained in 5 minutes",url:"https://www.youtube.com/watch?v=6RBORTY8z9c",isNew:true},
+  {id:"m6w3t2",milestone:6,origWeek:23,label:"YouTube — ISO 27001 Explained",url:"https://www.youtube.com/watch?v=FDqVRRsLgBQ",isNew:true},
+  {id:"m6w3t3",milestone:6,origWeek:23,label:"OWASP — DevSecOps & Compliance guide",url:"https://owasp.org/www-project-devsecops-guideline/latest/01b-Compliance-Auditing",isNew:true},
+  {id:"m6w3t4",milestone:6,origWeek:23,label:"Jason Dion — Final full practice exam (target 85%+)",url:"https://www.udemy.com/course/comptia-security-practice-exams/"},
+  {id:"m6w3t5",milestone:6,origWeek:23,label:"Book Security+ exam via Pearson VUE",url:"https://home.pearsonvue.com/comptia"},
+  {id:"m6w3t6",milestone:6,origWeek:23,label:"Update LinkedIn & CV with all new skills",url:"https://linkedin.com"},
+  {id:"m6w3t7",milestone:6,origWeek:23,label:"🤖 AI: Ask Claude how SOC2 and ISO27001 map to a DevSecOps pipeline",url:"https://claude.ai",ai:true,isNew:true},
+  {id:"m6w3t8",milestone:6,origWeek:23,label:"🤖 AI: Ask Claude to rewrite your LinkedIn summary for DevSecOps",url:"https://claude.ai",ai:true},
+  {id:"m6w4t1",milestone:6,origWeek:24,label:"Light review — compile all wrong answers from practice exams",url:null},
+  {id:"m6w4t2",milestone:6,origWeek:24,label:"Professor Messer — Last-Minute Security+ study notes",url:"https://www.professormesser.com/security-plus/sy0-701/sy0-701-study-groups/"},
+  {id:"m6w4t3",milestone:6,origWeek:24,label:"Take your Security+ exam via Pearson VUE 🎯",url:"https://home.pearsonvue.com/comptia"},
+  {id:"m6w4t4",milestone:6,origWeek:24,label:"🤖 AI: Night before — ask Claude for a rapid-fire review of most tested concepts",url:"https://claude.ai",ai:true},
+];
+
+const MILESTONES=[
+  {id:1,label:"Linux & Foundations",title:"Linux & Command Line Foundations",color:"#4f46e5",tag:"DevSecOps journey · Step 1 of 6"},
+  {id:2,label:"CI/CD & Cloud",title:"CI/CD, AWS & Docker Security",color:"#4f46e5",tag:"DevSecOps journey · Step 2 of 6"},
+  {id:3,label:"Security Fundamentals",title:"Security Fundamentals & Threat Modelling",color:"#0891b2",tag:"DevSecOps journey · Step 3 of 6"},
+  {id:4,label:"Penetration Testing",title:"Penetration Testing Basics",color:"#dc2626",tag:"DevSecOps journey · Step 4 of 6"},
+  {id:5,label:"DevSecOps Integration",title:"DevSecOps Integration + Incident Response",color:"#16a34a",tag:"DevSecOps journey · Step 5 of 6"},
+  {id:6,label:"Cert & Compliance",title:"Security+ Final Prep, Compliance & Exam",color:"#16a34a",tag:"DevSecOps journey · Step 6 of 6 · 🎯 Finish line"},
 ];
 
 const PHASE2_TOPICS=[
@@ -219,71 +176,75 @@ const PHASE2_TOPICS=[
   {icon:"🔄",title:"Advanced CI/CD patterns",desc:"Blue/green, canary, GitOps workflows"},
 ];
 
-const STORAGE_KEY="devsecops_v5";
-const START_KEY="devsecops_start";
-const PACE_KEY="devsecops_pace";
-const phaseColors={"Phase 1":"#4f46e5","Phase 2":"#0891b2","Phase 3":"#dc2626","Phase 4":"#16a34a"};
-const nudgeStyle={warn:{background:"#fefce8",border:"0.5px solid #fde68a",color:"#92400e"},success:{background:"#f0fdf4",border:"0.5px solid #bbf7d0",color:"#15803d"},info:{background:"#eff6ff",border:"0.5px solid #bfdbfe",color:"#1e40af"}};
-
-function getNudge(checked,startDate,pace){
-  if(!startDate)return{msg:"Set your start date in Setup to activate weekly nudges.",type:"info"};
+// ── Build dynamic schedule from pace ─────────────────────────
+function buildSchedule(pace){
   const p=PACES.find(x=>x.id===pace)||PACES[1];
-  const now=new Date(),start=new Date(startDate);
-  const daysSince=Math.floor((now-start)/86400000);
-  const weekIdx=Math.min(Math.floor(daysSince/7),23);
-  const dow=daysSince%7;
-  const m=PLAN[Math.floor(weekIdx/4)],w=m?.weeks[weekIdx%4];
-  const wDone=w?.tasks.filter((_,ti)=>checked[`${weekIdx}-${ti}`]).length||0;
-  const wTotal=w?.tasks.length||0;
-  const total=PLAN.flatMap(m=>m.weeks.flatMap(w=>w.tasks)).length;
-  const done=Object.values(checked).filter(Boolean).length;
-  const pct=Math.round((done/total)*100);
-  if(dow>=3&&wDone===0)return{msg:`Midweek check-in: no tasks started yet this week. At ${p.label} you need ~${Math.ceil(wTotal/2)} tasks done by now to stay on track.`,type:"warn"};
-  if(dow>=5&&wDone<wTotal)return{msg:`Weekend: ${wTotal-wDone} task(s) remaining this week. A ${Math.round((wTotal-wDone)*20)} min session keeps you on pace.`,type:"warn"};
-  if(wDone===wTotal&&wTotal>0)return{msg:`Week complete! You're ${pct}% through the full plan at ${p.label}. Great consistency.`,type:"success"};
-  if(done===0)return{msg:`Welcome! At ${p.label} you'll complete this plan in ~${p.months} months. Open Month 1 and start your first task today.`,type:"info"};
-  return{msg:`${pct}% complete at ${p.label}. Estimated finish: ~${p.months} months from your start date. Keep showing up.`,type:"info"};
+  const tpw=p.tasksPerWeek;
+  const weeks=[];
+  let i=0;
+  let weekNum=1;
+  while(i<ALL_TASKS.length){
+    const chunk=ALL_TASKS.slice(i,i+tpw);
+    // label week with milestone(s) covered
+    const milestones=[...new Set(chunk.map(t=>t.milestone))];
+    weeks.push({weekNum,tasks:chunk,milestones});
+    i+=tpw;
+    weekNum++;
+  }
+  return weeks;
+}
+
+const STORAGE_KEY="devsecops_v7";
+const START_KEY="devsecops_start";
+const PACE_KEY="devsecops_pace_v2";
+
+const nudgeSt={warn:{background:"#fefce8",border:"0.5px solid #fde68a",color:"#92400e"},success:{background:"#f0fdf4",border:"0.5px solid #bbf7d0",color:"#15803d"},info:{background:"#eff6ff",border:"0.5px solid #bfdbfe",color:"#1e40af"}};
+
+function PaceSelector({value,onChange}){
+  return(
+    <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
+      {PACES.map(p=>(
+        <button key={p.id} className={`pace-opt${value===p.id?" sel":""}`} onClick={()=>onChange(p.id)}
+          style={{background:value===p.id?"#4f46e5":"transparent",border:"0.5px solid "+(value===p.id?"#4f46e5":"#e5e7eb"),borderRadius:10,padding:"12px 14px",cursor:"pointer",textAlign:"left",fontFamily:"inherit"}}>
+          <div style={{fontSize:13,fontWeight:500,color:value===p.id?"#fff":"#111827"}}>{p.label}</div>
+          <div style={{fontSize:11,color:value===p.id?"#c7d2fe":"#6b7280",marginTop:2}}>{p.desc}</div>
+        </button>
+      ))}
+    </div>
+  );
 }
 
 function Onboarding({onDone}){
   const[pace,setPace]=useState("steady");
+  const p=PACES.find(x=>x.id===pace);
+  const totalWeeks=Math.ceil(ALL_TASKS.length/p.tasksPerWeek);
   return(
     <div style={{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",padding:20}}>
-      <div className="onboard" style={{background:"#fff",border:"0.5px solid #e5e7eb",borderRadius:16,padding:"32px 28px",maxWidth:520,width:"100%"}}>
+      <div style={{background:"#fff",border:"0.5px solid #e5e7eb",borderRadius:16,padding:"32px 28px",maxWidth:520,width:"100%"}}>
         <div style={{fontSize:28,marginBottom:8}}>👋</div>
         <h1 style={{fontSize:20,fontWeight:500,marginBottom:6}}>Welcome to your DevSecOps tracker</h1>
-        <p style={{fontSize:14,color:"#6b7280",marginBottom:24,lineHeight:1.6}}>Before we begin, tell us how many hours per week you can realistically commit. Your plan timeline will adjust accordingly.</p>
-
-        <div style={{fontSize:13,fontWeight:500,marginBottom:10,color:"#374151"}}>Your weekly study pace</div>
-        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:28}}>
-          {PACES.map(p=>(
-            <button key={p.id} className={`pace-btn${pace===p.id?" selected":""}`} onClick={()=>setPace(p.id)}
-              style={{background:pace===p.id?"#4f46e5":"transparent",border:"0.5px solid "+(pace===p.id?"#4f46e5":"#e5e7eb"),borderRadius:10,padding:"12px 14px",cursor:"pointer",textAlign:"left",transition:"all 0.15s",fontFamily:"inherit"}}>
-              <div style={{fontSize:14,fontWeight:500,color:pace===p.id?"#fff":"#111827",marginBottom:3}}>{p.label}</div>
-              <div style={{fontSize:12,color:pace===p.id?"#c7d2fe":"#6b7280"}}>{p.desc}</div>
-            </button>
-          ))}
+        <p style={{fontSize:14,color:"#6b7280",marginBottom:20,lineHeight:1.6}}>Set your weekly study pace. Your plan will be dynamically scheduled — faster pace means more tasks per week, compressing the timeline. You can change this anytime.</p>
+        <PaceSelector value={pace} onChange={setPace}/>
+        <div style={{background:"#f0f9ff",border:"0.5px solid #bae6fd",borderRadius:8,padding:"10px 14px",margin:"16px 0",fontSize:13,color:"#0c4a6e"}}>
+          At <strong>{p.label}</strong>: <strong>{p.tasksPerWeek} tasks/week</strong> → complete all {ALL_TASKS.length} tasks in ~<strong>{totalWeeks} weeks</strong>
         </div>
-
         <div style={{background:"#f8fafc",border:"0.5px solid #e5e7eb",borderRadius:10,padding:"14px 16px",marginBottom:24}}>
-          <div style={{fontSize:12,fontWeight:500,color:"#374151",marginBottom:10}}>Your 2-phase learning journey</div>
-          <div style={{display:"flex",gap:0}}>
+          <div style={{fontSize:12,fontWeight:500,color:"#374151",marginBottom:10}}>Your 2-phase career journey</div>
+          <div style={{display:"flex"}}>
             <div style={{flex:1,background:"#4f46e5",borderRadius:"8px 0 0 8px",padding:"10px 12px"}}>
-              <div style={{fontSize:11,color:"#c7d2fe",marginBottom:2}}>Phase 1 · Months 1–6</div>
+              <div style={{fontSize:10,color:"#c7d2fe",marginBottom:2}}>Phase 1 · This tracker</div>
               <div style={{fontSize:13,fontWeight:500,color:"#fff"}}>DevSecOps role</div>
-              <div style={{fontSize:11,color:"#c7d2fe",marginTop:2}}>Security, pipelines, pen testing, cert</div>
+              <div style={{fontSize:11,color:"#c7d2fe",marginTop:2}}>Security · Pipelines · Pen testing · Cert</div>
             </div>
-            <div style={{flex:1,background:"#0891b2",borderRadius:"0 8px 8px 0",padding:"10px 12px"}}>
-              <div style={{fontSize:11,color:"#bae6fd",marginBottom:2}}>Phase 2 · Months 7–12</div>
+            <div style={{flex:1,background:"#0c4a6e",borderRadius:"0 8px 8px 0",padding:"10px 12px"}}>
+              <div style={{fontSize:10,color:"#bae6fd",marginBottom:2}}>Phase 2 · After Phase 1</div>
               <div style={{fontSize:13,fontWeight:500,color:"#fff"}}>DevOps role</div>
-              <div style={{fontSize:11,color:"#bae6fd",marginTop:2}}>K8s, Terraform, IaC, advanced cloud</div>
+              <div style={{fontSize:11,color:"#bae6fd",marginTop:2}}>K8s · Terraform · IaC · Advanced cloud</div>
             </div>
           </div>
         </div>
-
-        <button onClick={()=>onDone(pace)}
-          style={{width:"100%",background:"#4f46e5",color:"#fff",border:"none",borderRadius:10,padding:"13px",fontSize:15,fontWeight:500,cursor:"pointer",fontFamily:"inherit"}}>
-          Start my plan →
+        <button onClick={()=>onDone(pace)} style={{width:"100%",background:"#4f46e5",color:"#fff",border:"none",borderRadius:10,padding:"13px",fontSize:15,fontWeight:500,cursor:"pointer",fontFamily:"inherit"}}>
+          Build my plan →
         </button>
       </div>
     </div>
@@ -295,9 +256,9 @@ function App(){
   const[startDate,setStartDate]=useState("");
   const[pace,setPace]=useState(null);
   const[view,setView]=useState("dashboard");
-  const[activeMonth,setActiveMonth]=useState(0);
-  const[expandedWeeks,setExpandedWeeks]=useState({"0-0":true});
+  const[activeWeek,setActiveWeek]=useState(0);
   const[filter,setFilter]=useState("all");
+  const[expandedWeeks,setExpandedWeeks]=useState({0:true});
 
   useEffect(()=>{
     try{
@@ -308,7 +269,7 @@ function App(){
     }catch{}
   },[]);
 
-  const save=(nc,nd,np)=>{
+  const saveAll=(nc,nd,np)=>{
     try{
       if(nc!==undefined)localStorage.setItem(STORAGE_KEY,JSON.stringify(nc));
       if(nd!==undefined)localStorage.setItem(START_KEY,nd);
@@ -316,73 +277,93 @@ function App(){
     }catch{}
   };
 
-  const handleOnboard=(p)=>{setPace(p);save(undefined,undefined,p);};
-  const toggleTask=(key,e)=>{e.stopPropagation();const next={...checked,[key]:!checked[key]};setChecked(next);save(next);};
-  const toggleWeek=key=>setExpandedWeeks(p=>({...p,[key]:!p[key]}));
+  const handleOnboard=p=>{setPace(p);saveAll(undefined,undefined,p);};
+  const handlePaceChange=p=>{setPace(p);saveAll(undefined,undefined,p);};
+  const toggleTask=id=>{const next={...checked,[id]:!checked[id]};setChecked(next);saveAll(next);};
+  const toggleWeek=i=>setExpandedWeeks(p=>({...p,[i]:!p[i]}));
 
   if(!pace)return<Onboarding onDone={handleOnboard}/>;
 
   const paceObj=PACES.find(x=>x.id===pace)||PACES[1];
-  const allTasks=PLAN.flatMap(m=>m.weeks.flatMap(w=>w.tasks));
-  const total=allTasks.length;
-  const aiTotal=allTasks.filter(t=>t.ai).length;
-  const done=Object.values(checked).filter(Boolean).length;
+  const schedule=buildSchedule(pace);
+  const total=ALL_TASKS.length;
+  const done=ALL_TASKS.filter(t=>checked[t.id]).length;
   const pct=Math.round((done/total)*100);
+  const totalWeeks=schedule.length;
 
-  const mProg=PLAN.map((m,mi)=>{
-    const keys=m.weeks.flatMap((w,wi)=>w.tasks.map((_,ti)=>`${mi*4+wi}-${ti}`));
-    const d=keys.filter(k=>checked[k]).length;
-    return{done:d,total:keys.length,pct:Math.round((d/keys.length)*100)};
+  // current week based on start date
+  let currentWeekIdx=0;
+  if(startDate){
+    const daysSince=Math.floor((new Date()-new Date(startDate))/86400000);
+    currentWeekIdx=Math.min(Math.floor(daysSince/7),totalWeeks-1);
+  }
+
+  const currentWeek=schedule[currentWeekIdx];
+  const cwDone=currentWeek?currentWeek.tasks.filter(t=>checked[t.id]).length:0;
+  const cwTotal=currentWeek?currentWeek.tasks.length:0;
+  const dayOfWeek=startDate?Math.floor((new Date()-new Date(startDate))/86400000)%7:0;
+
+  // nudge
+  let nudge={msg:`${pct}% complete at ${paceObj.label}. ${totalWeeks-currentWeekIdx} weeks remaining.`,type:"info"};
+  if(!startDate)nudge={msg:"Set your start date in Setup to activate weekly nudges.",type:"info"};
+  else if(dayOfWeek>=3&&cwDone===0)nudge={msg:`Midweek check-in: Week ${currentWeekIdx+1} tasks not started yet. At ${paceObj.label} you have ${cwTotal} tasks this week — aim for at least ${Math.ceil(cwTotal/2)} today.`,type:"warn"};
+  else if(dayOfWeek>=5&&cwDone<cwTotal)nudge={msg:`Weekend: ${cwTotal-cwDone} task(s) left in Week ${currentWeekIdx+1}. A short session now keeps you on schedule.`,type:"warn"};
+  else if(cwDone===cwTotal&&cwTotal>0)nudge={msg:`Week ${currentWeekIdx+1} complete! ${pct}% through the full plan. Next up: Week ${currentWeekIdx+2}.`,type:"success"};
+  else if(done===0)nudge={msg:`At ${paceObj.label}: ${paceObj.tasksPerWeek} tasks/week → finish in ~${totalWeeks} weeks. Open Week 1 and start your first task!`,type:"info"};
+
+  // milestone progress
+  const msProg=MILESTONES.map(ms=>{
+    const tasks=ALL_TASKS.filter(t=>t.milestone===ms.id);
+    const d=tasks.filter(t=>checked[t.id]).length;
+    return{...ms,done:d,total:tasks.length,pct:Math.round((d/tasks.length)*100)};
   });
-
-  const nudge=getNudge(checked,startDate,pace);
 
   return(
     <div style={{maxWidth:700,margin:"0 auto",padding:"20px 16px"}}>
       <div style={{marginBottom:16}}>
         <h1 style={{fontSize:22,fontWeight:500,marginBottom:4}}>DevSecOps learning tracker</h1>
         <div style={{display:"flex",alignItems:"center",gap:8,flexWrap:"wrap"}}>
-          <span style={{fontSize:13,color:"#6b7280"}}>{total} tasks · {aiTotal} AI tasks</span>
-          <span style={{fontSize:11,background:"#eef2ff",color:"#4f46e5",borderRadius:6,padding:"2px 8px",fontWeight:500}}>📅 {paceObj.label} · ~{paceObj.months} months</span>
-          <button onClick={()=>{save(undefined,undefined,"");setPace(null);}} style={{fontSize:11,color:"#9ca3af",background:"transparent",border:"none",cursor:"pointer",textDecoration:"underline",fontFamily:"inherit"}}>change pace</button>
+          <span style={{fontSize:13,color:"#6b7280"}}>{total} tasks · {done} done</span>
+          <span style={{fontSize:11,background:"#eef2ff",color:"#4f46e5",borderRadius:6,padding:"2px 8px",fontWeight:500}}>📅 {paceObj.label} · {paceObj.tasksPerWeek} tasks/wk · ~{totalWeeks} weeks total</span>
+          <button onClick={()=>setPace(null)} style={{fontSize:11,color:"#9ca3af",background:"transparent",border:"none",cursor:"pointer",textDecoration:"underline",fontFamily:"inherit"}}>change pace</button>
         </div>
       </div>
 
-      {/* Two-phase roadmap banner */}
-      <div className="phase-bar" style={{background:"#fff",border:"0.5px solid #e5e7eb",borderRadius:12,overflow:"hidden",marginBottom:16}}>
-        <div style={{padding:"10px 14px 8px",borderBottom:"0.5px solid #f3f4f6"}}>
-          <span style={{fontSize:12,fontWeight:500,color:"#374151"}}>Your 2-phase career roadmap</span>
-        </div>
+      {/* Phase banner */}
+      <div className="phase-banner" style={{background:"#fff",border:"0.5px solid #e5e7eb",borderRadius:12,overflow:"hidden",marginBottom:16}}>
         <div style={{display:"flex"}}>
-          <div style={{flex:1,background:"#4f46e5",padding:"12px 14px"}}>
-            <div style={{fontSize:10,color:"#c7d2fe",fontWeight:500,textTransform:"uppercase",letterSpacing:0.5,marginBottom:3}}>Phase 1 · Months 1–{paceObj.months}</div>
-            <div style={{fontSize:14,fontWeight:500,color:"#fff",marginBottom:2}}>DevSecOps role</div>
-            <div style={{fontSize:11,color:"#c7d2fe",lineHeight:1.4}}>Security testing · Pen testing · Secure CI/CD · CompTIA Security+ · Incident response · Compliance</div>
-            <div style={{marginTop:8,fontSize:11,background:"rgba(255,255,255,0.15)",borderRadius:6,padding:"4px 8px",color:"#e0e7ff",display:"inline-block"}}>👈 You are here — this tracker</div>
+          <div style={{flex:1,background:"#4f46e5",padding:"10px 14px"}}>
+            <div style={{fontSize:10,color:"#c7d2fe",fontWeight:500,textTransform:"uppercase",letterSpacing:0.5,marginBottom:2}}>Phase 1 · This tracker · ~{totalWeeks} weeks</div>
+            <div style={{fontSize:13,fontWeight:500,color:"#fff"}}>DevSecOps role</div>
+            <div style={{fontSize:11,color:"#c7d2fe",marginTop:2}}>Security · Pen testing · CI/CD · Security+ · IR · Compliance</div>
           </div>
-          <div style={{flex:1,background:"#0c4a6e",padding:"12px 14px"}}>
-            <div style={{fontSize:10,color:"#7dd3fc",fontWeight:500,textTransform:"uppercase",letterSpacing:0.5,marginBottom:3}}>Phase 2 · Months {paceObj.months+1}–{paceObj.months*2}</div>
-            <div style={{fontSize:14,fontWeight:500,color:"#fff",marginBottom:2}}>DevOps role</div>
-            <div style={{fontSize:11,color:"#7dd3fc",lineHeight:1.4}}>Kubernetes · Terraform · Python scripting · Advanced AWS · Monitoring · GitOps</div>
-            <div style={{marginTop:8,fontSize:11,background:"rgba(255,255,255,0.1)",borderRadius:6,padding:"4px 8px",color:"#bae6fd",display:"inline-block"}}>🔒 Unlocks after Phase 1</div>
+          <div style={{flex:1,background:"#0c4a6e",padding:"10px 14px"}}>
+            <div style={{fontSize:10,color:"#7dd3fc",fontWeight:500,textTransform:"uppercase",letterSpacing:0.5,marginBottom:2}}>Phase 2 · After Phase 1 · Unlocks later</div>
+            <div style={{fontSize:13,fontWeight:500,color:"#fff"}}>DevOps role</div>
+            <div style={{fontSize:11,color:"#7dd3fc",marginTop:2}}>Kubernetes · Terraform · Python · Advanced AWS · GitOps</div>
           </div>
         </div>
       </div>
 
-      <div style={{display:"flex",gap:6,marginBottom:20,borderBottom:"0.5px solid #e5e7eb",paddingBottom:12}}>
-        {["dashboard","plan","phase2","setup"].map(v=>(
+      <div style={{display:"flex",gap:6,marginBottom:20,borderBottom:"0.5px solid #e5e7eb",paddingBottom:12,flexWrap:"wrap"}}>
+        {["dashboard","plan","milestones","phase2","setup"].map(v=>(
           <button key={v} className={`nav-btn${view===v?" active":""}`} onClick={()=>setView(v)}
-            style={{background:view===v?"#f3f4f6":"transparent",border:"0.5px solid "+(view===v?"#d1d5db":"transparent"),borderRadius:8,padding:"6px 14px",fontSize:13,cursor:"pointer",fontWeight:view===v?500:400,fontFamily:"inherit",color:view===v?"#111827":"#6b7280"}}>
-            {v==="dashboard"?"Dashboard":v==="plan"?"Full plan":v==="phase2"?"Phase 2 preview":"Setup"}
+            style={{background:view===v?"#f3f4f6":"transparent",border:"0.5px solid "+(view===v?"#d1d5db":"transparent"),borderRadius:8,padding:"6px 12px",fontSize:13,cursor:"pointer",fontWeight:view===v?500:400,fontFamily:"inherit",color:view===v?"#111827":"#6b7280"}}>
+            {v==="dashboard"?"Dashboard":v==="plan"?"Weekly plan":v==="milestones"?"Milestones":v==="phase2"?"Phase 2":"Setup"}
           </button>
         ))}
       </div>
 
+      {/* ── DASHBOARD ── */}
       {view==="dashboard"&&(
         <>
-          <div style={{...nudgeStyle[nudge.type],borderRadius:10,padding:"10px 14px",fontSize:13,marginBottom:16}}>{nudge.msg}</div>
+          <div style={{...nudgeSt[nudge.type],borderRadius:10,padding:"10px 14px",fontSize:13,marginBottom:16}}>{nudge.msg}</div>
           <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:10,marginBottom:18}}>
-            {[{label:"Overall progress",val:pct+"%",sub:`${done}/${total} tasks`},{label:"Tasks completed",val:done,sub:"across all months"},{label:"Est. completion",val:`~${paceObj.months}mo`,sub:`at ${paceObj.label}`}].map((c,i)=>(
+            {[
+              {label:"Overall progress",val:pct+"%",sub:`${done}/${total} tasks`},
+              {label:"Current week",val:`Wk ${currentWeekIdx+1}/${totalWeeks}`,sub:`${cwDone}/${cwTotal} tasks done`},
+              {label:"Weeks remaining",val:totalWeeks-currentWeekIdx,sub:`at ${paceObj.label}`},
+            ].map((c,i)=>(
               <div key={i} className="metric" style={{background:"#f9fafb",border:"0.5px solid #e5e7eb",borderRadius:10,padding:"12px 14px"}}>
                 <div style={{fontSize:12,color:"#6b7280",marginBottom:4}}>{c.label}</div>
                 <div style={{fontSize:22,fontWeight:500}}>{c.val}</div>
@@ -390,122 +371,149 @@ function App(){
               </div>
             ))}
           </div>
-          <div className="card" style={{background:"#fff",border:"0.5px solid #e5e7eb",borderRadius:12,padding:"16px"}}>
-            <div style={{fontSize:14,fontWeight:500,marginBottom:14}}>Monthly progress</div>
-            {PLAN.map((m,i)=>(
-              <div key={i} style={{marginBottom:14}}>
-                <div style={{display:"flex",justifyContent:"space-between",fontSize:13,marginBottom:4}}>
-                  <span style={{fontWeight:500}}>Month {m.month} — {m.title}</span>
-                  <span style={{color:"#6b7280"}}>{mProg[i].done}/{mProg[i].total}</span>
-                </div>
-                <div style={{height:5,borderRadius:99,background:"#e5e7eb",overflow:"hidden"}}>
-                  <div style={{height:"100%",width:mProg[i].pct+"%",background:phaseColors[m.phase],borderRadius:99,transition:"width 0.4s"}}/>
-                </div>
-                <div style={{fontSize:11,color:"#9ca3af",marginTop:3}}>{m.phase} · {mProg[i].pct}% complete</div>
-              </div>
-            ))}
+          {/* Overall progress bar */}
+          <div className="card" style={{background:"#fff",border:"0.5px solid #e5e7eb",borderRadius:12,padding:"16px",marginBottom:12}}>
+            <div style={{display:"flex",justifyContent:"space-between",marginBottom:8,fontSize:13}}>
+              <span style={{fontWeight:500}}>Total plan progress</span>
+              <span style={{color:"#6b7280"}}>{pct}%</span>
+            </div>
+            <div style={{height:8,borderRadius:99,background:"#e5e7eb",overflow:"hidden"}}>
+              <div style={{height:"100%",width:pct+"%",background:"#4f46e5",borderRadius:99,transition:"width 0.4s"}}/>
+            </div>
           </div>
+          {/* This week's tasks preview */}
+          {currentWeek&&(
+            <div className="card" style={{background:"#fff",border:"0.5px solid #e5e7eb",borderRadius:12,padding:"16px"}}>
+              <div style={{fontSize:14,fontWeight:500,marginBottom:4}}>This week — Week {currentWeekIdx+1}</div>
+              <div style={{fontSize:12,color:"#6b7280",marginBottom:12}}>{cwDone}/{cwTotal} tasks completed</div>
+              {currentWeek.tasks.slice(0,4).map((task,i)=>{
+                const isDone=!!checked[task.id];
+                return(
+                  <div key={i} onClick={()=>toggleTask(task.id)} style={{display:"flex",gap:10,alignItems:"flex-start",padding:"7px 0",borderTop:i>0?"0.5px solid #f3f4f6":"none",cursor:"pointer",opacity:isDone?0.5:1}}>
+                    <div style={{width:16,height:16,borderRadius:4,border:isDone?"none":"1.5px solid #d1d5db",background:isDone?"#22c55e":"transparent",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,marginTop:2}}>
+                      {isDone&&<span style={{color:"white",fontSize:10,fontWeight:700}}>✓</span>}
+                    </div>
+                    <span style={{fontSize:12,lineHeight:1.4,textDecoration:isDone?"line-through":"none"}}>{task.label}</span>
+                  </div>
+                );
+              })}
+              {cwTotal>4&&<div style={{fontSize:12,color:"#6b7280",marginTop:8,paddingTop:8,borderTop:"0.5px solid #f3f4f6"}}>+{cwTotal-4} more — <button onClick={()=>{setActiveWeek(currentWeekIdx);setView("plan");}} style={{fontSize:12,color:"#4f46e5",background:"none",border:"none",cursor:"pointer",textDecoration:"underline",fontFamily:"inherit"}}>view full week</button></div>}
+            </div>
+          )}
         </>
       )}
 
+      {/* ── WEEKLY PLAN ── */}
       {view==="plan"&&(
         <>
-          <div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:10}}>
-            {PLAN.map((m,i)=>(
-              <button key={i} onClick={()=>setActiveMonth(i)}
-                style={{background:activeMonth===i?phaseColors[m.phase]+"18":"transparent",border:"0.5px solid "+(activeMonth===i?phaseColors[m.phase]:"#e5e7eb"),borderRadius:8,padding:"5px 14px",fontSize:13,cursor:"pointer",color:activeMonth===i?phaseColors[m.phase]:"#6b7280",fontWeight:activeMonth===i?500:400,fontFamily:"inherit"}}>
-                M{m.month}
-              </button>
-            ))}
-          </div>
           <div style={{display:"flex",gap:6,marginBottom:14,flexWrap:"wrap"}}>
-            {["all","regular","ai","new"].map(f=>(
+            {["all","regular","ai"].map(f=>(
               <button key={f} onClick={()=>setFilter(f)}
-                style={{background:filter===f?(f==="ai"?"#eef2ff":f==="new"?"#f0fdf4":"#f3f4f6"):"transparent",border:"0.5px solid "+(filter===f?(f==="ai"?"#6366f1":f==="new"?"#16a34a":"#d1d5db"):"#e5e7eb"),borderRadius:6,padding:"4px 12px",fontSize:12,cursor:"pointer",color:filter===f?(f==="ai"?"#4f46e5":f==="new"?"#15803d":"#111827"):"#6b7280",fontFamily:"inherit"}}>
-                {f==="all"?"All tasks":f==="ai"?"🤖 AI only":f==="new"?"⭐ New only":"Regular only"}
+                style={{background:filter===f?(f==="ai"?"#eef2ff":"#f3f4f6"):"transparent",border:"0.5px solid "+(filter===f?(f==="ai"?"#6366f1":"#d1d5db"):"#e5e7eb"),borderRadius:6,padding:"4px 12px",fontSize:12,cursor:"pointer",color:filter===f?(f==="ai"?"#4f46e5":"#111827"):"#6b7280",fontFamily:"inherit"}}>
+                {f==="all"?"All tasks":f==="ai"?"🤖 AI only":"Regular only"}
               </button>
             ))}
           </div>
-          {(()=>{
-            const m=PLAN[activeMonth],mp=mProg[activeMonth];
+          <p style={{fontSize:12,color:"#9ca3af",marginBottom:12}}>At <strong style={{color:"#4f46e5"}}>{paceObj.label}</strong> — {paceObj.tasksPerWeek} tasks per week across {totalWeeks} weeks. Tasks from multiple original months may appear in the same week.</p>
+          {schedule.map((wk,wi)=>{
+            const wDone=wk.tasks.filter(t=>checked[t.id]).length;
+            const isOpen=!!expandedWeeks[wi];
+            const isCurrent=wi===currentWeekIdx;
+            const mColors=[...new Set(wk.milestones)].map(m=>MILESTONES.find(x=>x.id===m)?.color||"#6b7280");
+            const filteredTasks=wk.tasks.filter(t=>filter==="all"||(filter==="ai"&&t.ai)||(filter==="regular"&&!t.ai));
             return(
-              <div className="card" style={{background:"#fff",border:"0.5px solid #e5e7eb",borderRadius:12,padding:"16px"}}>
-                <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:10}}>
-                  <div>
-                    <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:3}}>
-                      <span style={{fontSize:11,fontWeight:500,color:phaseColors[m.phase],textTransform:"uppercase",letterSpacing:0.5}}>{m.phase} · Month {m.month}</span>
-                      {m.weeks.some(w=>w.isNew)&&<span style={{fontSize:10,fontWeight:500,background:"#f0fdf4",color:"#15803d",borderRadius:4,padding:"1px 6px"}}>has new content</span>}
+              <div key={wi} className="wk-card" style={{background:"#fff",border:"0.5px solid "+(isCurrent?"#6366f1":"#e5e7eb"),borderRadius:12,marginBottom:8,overflow:"hidden"}}>
+                <div onClick={()=>toggleWeek(wi)} style={{padding:"12px 14px",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"space-between",background:isCurrent?"#fafafe":"transparent"}}>
+                  <div style={{display:"flex",alignItems:"center",gap:8}}>
+                    {/* milestone color dots */}
+                    <div style={{display:"flex",gap:3}}>
+                      {mColors.map((c,ci)=><div key={ci} style={{width:8,height:8,borderRadius:"50%",background:c}}/>)}
                     </div>
-                    <div style={{fontSize:16,fontWeight:500}}>{m.title}</div>
-                  </div>
-                  <span style={{fontSize:13,color:"#6b7280"}}>{mp.done}/{mp.total}</span>
-                </div>
-                <div style={{height:5,borderRadius:99,background:"#e5e7eb",overflow:"hidden",marginBottom:16}}>
-                  <div style={{height:"100%",width:mp.pct+"%",background:phaseColors[m.phase],borderRadius:99,transition:"width 0.4s"}}/>
-                </div>
-                {m.weeks.map((w,wi)=>{
-                  const wKey=`${activeMonth}-${wi}`;
-                  const gIdx=activeMonth*4+wi;
-                  const filteredTasks=w.tasks.filter(t=>filter==="all"||(filter==="ai"&&t.ai)||(filter==="regular"&&!t.ai)||(filter==="new"&&t.isNew));
-                  if(filteredTasks.length===0)return null;
-                  const wDone=w.tasks.filter((_,ti)=>checked[`${gIdx}-${ti}`]).length;
-                  const open=!!expandedWeeks[wKey];
-                  return(
-                    <div key={wi}>
-                      <div className="week-sep" style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"10px 0",cursor:"pointer",borderTop:"0.5px solid #f3f4f6"}} onClick={()=>toggleWeek(wKey)}>
-                        <div style={{display:"flex",alignItems:"center",gap:6}}>
-                          <span style={{fontSize:11,color:"#9ca3af"}}>Week {w.week} · </span>
-                          <span style={{fontSize:14,fontWeight:500}}>{w.title}</span>
-                          {w.isNew&&<span style={{fontSize:10,fontWeight:500,background:"#f0fdf4",color:"#15803d",borderRadius:4,padding:"1px 6px"}}>new</span>}
-                        </div>
-                        <div style={{display:"flex",alignItems:"center",gap:8}}>
-                          <span style={{fontSize:12,color:wDone===w.tasks.length?"#16a34a":"#9ca3af"}}>{wDone}/{w.tasks.length}</span>
-                          <span style={{fontSize:11,color:"#9ca3af"}}>{open?"▲":"▼"}</span>
-                        </div>
+                    <div>
+                      <span style={{fontSize:13,fontWeight:500}}>Week {wk.weekNum}</span>
+                      {isCurrent&&<span style={{fontSize:10,background:"#eef2ff",color:"#4f46e5",borderRadius:4,padding:"1px 6px",marginLeft:6,fontWeight:500}}>current</span>}
+                      <div style={{fontSize:11,color:"#9ca3af",marginTop:2}}>
+                        {[...new Set(wk.milestones)].map(m=>MILESTONES.find(x=>x.id===m)?.title).join(" · ")}
                       </div>
-                      {open&&filteredTasks.map((task)=>{
-                        const ti=w.tasks.indexOf(task);
-                        const tKey=`${gIdx}-${ti}`;
-                        const isDone=!!checked[tKey];
-                        return(
-                          <div key={ti} style={{display:"flex",gap:10,alignItems:"flex-start",padding:"9px 0 9px 4px",borderTop:"0.5px solid #f9fafb",background:task.ai?"#fafafe":task.isNew?"#fafff7":"transparent"}}>
-                            <div onClick={e=>toggleTask(tKey,e)} style={{width:18,height:18,borderRadius:5,border:isDone?"none":"1.5px solid #d1d5db",background:isDone?"#22c55e":"transparent",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,marginTop:2,cursor:"pointer"}}>
-                              {isDone&&<span style={{color:"white",fontSize:11,fontWeight:600}}>✓</span>}
-                            </div>
-                            <div style={{flex:1,minWidth:0}}>
-                              <div style={{display:"flex",gap:4,flexWrap:"wrap",marginBottom:task.ai||task.isNew?4:0}}>
-                                {task.ai&&<span className="ai-badge" style={{fontSize:10,fontWeight:500,background:"#eef2ff",color:"#4338ca",borderRadius:4,padding:"1px 6px"}}>AI task</span>}
-                                {task.isNew&&<span style={{fontSize:10,fontWeight:500,background:"#f0fdf4",color:"#15803d",borderRadius:4,padding:"1px 6px"}}>new</span>}
-                              </div>
-                              {task.url?(
-                                <a href={task.url} target="_blank" rel="noopener noreferrer"
-                                  style={{fontSize:13,lineHeight:1.5,color:task.ai?"#6366f1":"#4f46e5",textDecoration:isDone?"line-through":"underline",opacity:isDone?0.5:1,display:"block",wordBreak:"break-word"}}>
-                                  {task.label} ↗
-                                </a>
-                              ):(
-                                <span style={{fontSize:13,lineHeight:1.5,color:"#374151",textDecoration:isDone?"line-through":"none",opacity:isDone?0.5:1,display:"block"}}>{task.label}</span>
-                              )}
-                            </div>
-                          </div>
-                        );
-                      })}
                     </div>
-                  );
-                })}
+                  </div>
+                  <div style={{display:"flex",alignItems:"center",gap:8}}>
+                    <span style={{fontSize:12,color:wDone===wk.tasks.length?"#16a34a":"#9ca3af"}}>{wDone}/{wk.tasks.length}</span>
+                    <span style={{fontSize:11,color:"#9ca3af"}}>{isOpen?"▲":"▼"}</span>
+                  </div>
+                </div>
+                {isOpen&&(
+                  <div style={{padding:"0 0 8px"}}>
+                    {filteredTasks.map((task,ti)=>{
+                      const isDone=!!checked[task.id];
+                      return(
+                        <div key={ti} onClick={()=>toggleTask(task.id)} style={{display:"flex",gap:10,alignItems:"flex-start",padding:"8px 14px",borderTop:"0.5px solid #f9fafb",cursor:"pointer",background:task.ai?"#fafafe":isDone?"#f9fafb":"white"}}>
+                          <div style={{width:16,height:16,borderRadius:4,border:isDone?"none":"1.5px solid #d1d5db",background:isDone?"#22c55e":"transparent",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,marginTop:2}}>
+                            {isDone&&<span style={{color:"white",fontSize:10,fontWeight:700}}>✓</span>}
+                          </div>
+                          <div style={{flex:1,minWidth:0}}>
+                            <div style={{display:"flex",gap:4,flexWrap:"wrap",marginBottom:task.ai||task.isNew?3:0}}>
+                              {task.ai&&<span className="ai-badge" style={{fontSize:9,fontWeight:500,background:"#eef2ff",color:"#4338ca",borderRadius:4,padding:"1px 5px"}}>AI task</span>}
+                              {task.isNew&&<span style={{fontSize:9,fontWeight:500,background:"#f0fdf4",color:"#15803d",borderRadius:4,padding:"1px 5px"}}>new</span>}
+                              <span className="src-tag" style={{fontSize:9,background:"#f3f4f6",color:"#6b7280",borderRadius:4,padding:"1px 5px"}}>M{task.milestone} W{task.origWeek%4||4}</span>
+                            </div>
+                            {task.url?(
+                              <a href={task.url} target="_blank" rel="noopener noreferrer" onClick={e=>e.stopPropagation()}
+                                style={{fontSize:12,lineHeight:1.5,color:task.ai?"#6366f1":"#4f46e5",textDecoration:isDone?"line-through":"underline",opacity:isDone?0.5:1,display:"block",wordBreak:"break-word"}}>
+                                {task.label} ↗
+                              </a>
+                            ):(
+                              <span style={{fontSize:12,lineHeight:1.5,color:"#374151",textDecoration:isDone?"line-through":"none",opacity:isDone?0.5:1,display:"block"}}>{task.label}</span>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
             );
-          })()}
+          })}
         </>
       )}
 
+      {/* ── MILESTONES ── */}
+      {view==="milestones"&&(
+        <>
+          <p style={{fontSize:13,color:"#6b7280",marginBottom:14}}>Milestones are the 6 learning topics of your plan. Your pace determines how many calendar weeks each milestone takes.</p>
+          {msProg.map((ms,i)=>(
+            <div key={i} className="card" style={{background:"#fff",border:"0.5px solid #e5e7eb",borderRadius:12,padding:"14px 16px",marginBottom:10}}>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:6}}>
+                <div>
+                  <div style={{fontSize:11,fontWeight:500,color:ms.color,textTransform:"uppercase",letterSpacing:0.5,marginBottom:2}}>{ms.tag}</div>
+                  <div style={{fontSize:15,fontWeight:500}}>{ms.title}</div>
+                </div>
+                <div style={{textAlign:"right",flexShrink:0,marginLeft:12}}>
+                  <div style={{fontSize:13,fontWeight:500,color:ms.pct===100?"#16a34a":"#374151"}}>{ms.done}/{ms.total}</div>
+                  <div style={{fontSize:11,color:"#9ca3af"}}>tasks</div>
+                </div>
+              </div>
+              <div style={{height:6,borderRadius:99,background:"#e5e7eb",overflow:"hidden",marginTop:8}}>
+                <div style={{height:"100%",width:ms.pct+"%",background:ms.color,borderRadius:99,transition:"width 0.4s"}}/>
+              </div>
+              {(()=>{
+                const wks=Math.ceil(ms.total/paceObj.tasksPerWeek);
+                const mos=(wks/4.3).toFixed(1);
+                return<div style={{fontSize:11,color:"#9ca3af",marginTop:4}}>{ms.pct}% complete · ~{wks} weeks (~{mos} months) at {paceObj.label} · <span style={{color:ms.color,fontWeight:500}}>{ms.label}</span></div>;
+              })()}
+            </div>
+          ))}
+        </>
+      )}
+
+      {/* ── PHASE 2 ── */}
       {view==="phase2"&&(
         <>
-          <div style={{background:"#0c4a6e",borderRadius:12,padding:"16px 18px",marginBottom:16,color:"#fff"}}>
-            <div style={{fontSize:11,color:"#7dd3fc",fontWeight:500,textTransform:"uppercase",letterSpacing:0.5,marginBottom:4}}>Phase 2 · Months {paceObj.months+1}–{paceObj.months*2} · After DevSecOps role</div>
-            <div style={{fontSize:18,fontWeight:500,marginBottom:6}}>DevOps Engineer roadmap</div>
-            <div style={{fontSize:13,color:"#bae6fd",lineHeight:1.6}}>Once you've transitioned into a DevSecOps or SecOps role and have 3–6 months of experience, Phase 2 will build the deeper DevOps skills that make you a complete DevSecOps + DevOps engineer. This is optional — many DevSecOps engineers never need to go this deep — but it opens up senior and lead roles.</div>
+          <div style={{background:"#0c4a6e",borderRadius:12,padding:"16px 18px",marginBottom:16}}>
+            <div style={{fontSize:10,color:"#7dd3fc",fontWeight:500,textTransform:"uppercase",letterSpacing:0.5,marginBottom:4}}>Phase 2 · After DevSecOps role</div>
+            <div style={{fontSize:18,fontWeight:500,color:"#fff",marginBottom:6}}>DevOps Engineer roadmap</div>
+            <div style={{fontSize:13,color:"#bae6fd",lineHeight:1.6}}>Once you've been in a DevSecOps role for 3–6 months, Phase 2 builds the deeper DevOps skills that open up senior and lead roles. This is optional — many DevSecOps engineers never need to go this deep.</div>
           </div>
-
           <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:16}}>
             {PHASE2_TOPICS.map((t,i)=>(
               <div key={i} className="card" style={{background:"#fff",border:"0.5px solid #e5e7eb",borderRadius:12,padding:"14px"}}>
@@ -515,51 +523,39 @@ function App(){
               </div>
             ))}
           </div>
-
-          <div style={{background:"#f0fdf4",border:"0.5px solid #bbf7d0",borderRadius:10,padding:"12px 14px",fontSize:13,color:"#15803d",marginBottom:10}}>
-            <strong>When to start Phase 2:</strong> After you've been in a DevSecOps role for at least 3 months and feel confident with security pipelines, pen testing basics, and cloud security. Don't rush — real-world experience in Phase 1 makes Phase 2 much easier to absorb.
-          </div>
-          <div style={{...nudgeStyle.info,borderRadius:10,padding:"12px 14px",fontSize:13}}>
-            <strong>Note:</strong> A full Phase 2 plan (Months 7–{paceObj.months*2}) can be generated here when you're ready. It will be tailored to what you've already learned in Phase 1.
-          </div>
+          <div style={{...nudgeSt.info,borderRadius:10,padding:"12px 14px",fontSize:13}}>A full Phase 2 plan can be generated when you're ready — tailored to what you've learned in Phase 1.</div>
         </>
       )}
 
+      {/* ── SETUP ── */}
       {view==="setup"&&(
         <>
           <div className="card" style={{background:"#fff",border:"0.5px solid #e5e7eb",borderRadius:12,padding:"16px",marginBottom:12}}>
-            <div style={{fontSize:14,fontWeight:500,marginBottom:8}}>Your pace</div>
-            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:8}}>
-              {PACES.map(p=>(
-                <button key={p.id} className={`pace-btn${pace===p.id?" selected":""}`} onClick={()=>{setPace(p.id);save(undefined,undefined,p.id);}}
-                  style={{background:pace===p.id?"#4f46e5":"transparent",border:"0.5px solid "+(pace===p.id?"#4f46e5":"#e5e7eb"),borderRadius:10,padding:"10px 12px",cursor:"pointer",textAlign:"left",fontFamily:"inherit"}}>
-                  <div style={{fontSize:13,fontWeight:500,color:pace===p.id?"#fff":"#111827",marginBottom:2}}>{p.label}</div>
-                  <div style={{fontSize:11,color:pace===p.id?"#c7d2fe":"#6b7280"}}>{p.desc}</div>
-                </button>
-              ))}
+            <div style={{fontSize:14,fontWeight:500,marginBottom:4}}>Study pace</div>
+            <p style={{fontSize:13,color:"#6b7280",marginBottom:12}}>Changing your pace rebuilds the entire weekly schedule. Your completed task checkboxes are preserved.</p>
+            <PaceSelector value={pace} onChange={handlePaceChange}/>
+            <div style={{background:"#f0f9ff",border:"0.5px solid #bae6fd",borderRadius:8,padding:"10px 14px",marginTop:12,fontSize:13,color:"#0c4a6e"}}>
+              At <strong>{paceObj.label}</strong>: <strong>{paceObj.tasksPerWeek} tasks/week</strong> → ~<strong>{schedule.length} weeks</strong> total
             </div>
           </div>
-
           <div className="card" style={{background:"#fff",border:"0.5px solid #e5e7eb",borderRadius:12,padding:"16px",marginBottom:12}}>
             <div style={{fontSize:14,fontWeight:500,marginBottom:8}}>Start date</div>
-            <p style={{fontSize:13,color:"#6b7280",marginBottom:10}}>Set the date you began Month 1. This powers the weekly nudge messages on the dashboard.</p>
-            <input type="date" value={startDate} onChange={e=>{setStartDate(e.target.value);save(undefined,e.target.value);}} style={{width:"100%",fontSize:14,padding:"8px 10px",borderRadius:8,border:"0.5px solid #d1d5db",fontFamily:"inherit"}}/>
-            {startDate&&<p style={{fontSize:12,color:"#16a34a",marginTop:8}}>Start date saved. Nudges are active on the dashboard.</p>}
+            <p style={{fontSize:13,color:"#6b7280",marginBottom:10}}>Used to calculate your current week and power dashboard nudges.</p>
+            <input type="date" value={startDate} onChange={e=>{setStartDate(e.target.value);saveAll(undefined,e.target.value);}} style={{width:"100%",fontSize:14,padding:"8px 10px",borderRadius:8,border:"0.5px solid #d1d5db",fontFamily:"inherit"}}/>
+            {startDate&&<p style={{fontSize:12,color:"#16a34a",marginTop:8}}>Start date saved. Nudges are active.</p>}
           </div>
-
           <div className="card" style={{background:"#fff",border:"0.5px solid #e5e7eb",borderRadius:12,padding:"16px",marginBottom:12}}>
             <div style={{fontSize:14,fontWeight:500,marginBottom:10}}>Google Calendar — weekly study block</div>
-            {["Open Google Calendar and click your preferred study day/time",`Set title: 'DevSecOps Study Session'`,`Set duration: ${paceObj.hrs <= 2 ? "2 hours" : "3 hours"} (matching your ${paceObj.label} pace)`,"Click 'More options' → Repeat: Every week","Add notification: 30 minutes before","Paste this app's URL in the description for one-click access","Save"].map((s,i)=>(
+            {[`Open Google Calendar → click your preferred study day`,`Set title: 'DevSecOps Study Session'`,`Set duration: ${paceObj.hrs<=2?"1–2 hours":paceObj.hrs<=3?"2–3 hours":paceObj.hrs<=5?"4–5 hours":"6+ hours"} to match your ${paceObj.label} pace`,"Click 'More options' → Repeat: Every week","Add notification: 30 minutes before","Paste this app's URL in the description","Save"].map((s,i)=>(
               <div key={i} style={{display:"flex",gap:10,marginBottom:8,alignItems:"flex-start"}}>
                 <div style={{width:22,height:22,borderRadius:"50%",background:"#eef2ff",display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,fontWeight:500,color:"#4f46e5",flexShrink:0}}>{i+1}</div>
                 <span style={{fontSize:13,lineHeight:1.5}}>{s}</span>
               </div>
             ))}
           </div>
-
-          <div className="card" style={{background:"#fff",border:"0.5px solid #e5e7eb",borderRadius:12,padding:"16px",marginBottom:12}}>
+          <div className="card" style={{background:"#fff",border:"0.5px solid #e5e7eb",borderRadius:12,padding:"16px"}}>
             <div style={{fontSize:14,fontWeight:500,marginBottom:10}}>Gmail — weekly self-reminder</div>
-            {["Open Gmail and compose a new email to yourself","Subject: 'DevSecOps — weekly check-in'","Body: What did I complete? What's next? Am I on track?","Click the arrow next to Send → 'Schedule send'","Pick next Monday morning (e.g. 8am)","Each week, schedule the next one — takes 2 minutes","This forces a weekly review habit"].map((s,i)=>(
+            {["Open Gmail → compose new email to yourself","Subject: 'DevSecOps — weekly check-in'","Body: What did I complete? What's next? Am I on track?","Click arrow next to Send → 'Schedule send'","Pick next Monday morning (e.g. 8am)","Reschedule each week — takes 2 minutes"].map((s,i)=>(
               <div key={i} style={{display:"flex",gap:10,marginBottom:8,alignItems:"flex-start"}}>
                 <div style={{width:22,height:22,borderRadius:"50%",background:"#f0fdf4",display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,fontWeight:500,color:"#16a34a",flexShrink:0}}>{i+1}</div>
                 <span style={{fontSize:13,lineHeight:1.5}}>{s}</span>
