@@ -159,12 +159,12 @@ const ALL_TASKS=[
 ];
 
 const MILESTONES=[
-  {id:1,label:"Milestone 1",title:"Linux & Command Line Foundations",color:"#4f46e5",phase:"Phase 1"},
-  {id:2,label:"Milestone 2",title:"CI/CD, AWS & Docker Security",color:"#4f46e5",phase:"Phase 1"},
-  {id:3,label:"Milestone 3",title:"Security Fundamentals & Threat Modelling",color:"#0891b2",phase:"Phase 2"},
-  {id:4,label:"Milestone 4",title:"Penetration Testing Basics",color:"#dc2626",phase:"Phase 3"},
-  {id:5,label:"Milestone 5",title:"DevSecOps Integration + Incident Response",color:"#16a34a",phase:"Phase 4"},
-  {id:6,label:"Milestone 6",title:"Security+ Final Prep, Compliance & Exam",color:"#16a34a",phase:"Phase 4"},
+  {id:1,label:"Linux & Foundations",title:"Linux & Command Line Foundations",color:"#4f46e5",tag:"DevSecOps journey · Step 1 of 6"},
+  {id:2,label:"CI/CD & Cloud",title:"CI/CD, AWS & Docker Security",color:"#4f46e5",tag:"DevSecOps journey · Step 2 of 6"},
+  {id:3,label:"Security Fundamentals",title:"Security Fundamentals & Threat Modelling",color:"#0891b2",tag:"DevSecOps journey · Step 3 of 6"},
+  {id:4,label:"Penetration Testing",title:"Penetration Testing Basics",color:"#dc2626",tag:"DevSecOps journey · Step 4 of 6"},
+  {id:5,label:"DevSecOps Integration",title:"DevSecOps Integration + Incident Response",color:"#16a34a",tag:"DevSecOps journey · Step 5 of 6"},
+  {id:6,label:"Cert & Compliance",title:"Security+ Final Prep, Compliance & Exam",color:"#16a34a",tag:"DevSecOps journey · Step 6 of 6 · 🎯 Finish line"},
 ];
 
 const PHASE2_TOPICS=[
@@ -485,7 +485,7 @@ function App(){
             <div key={i} className="card" style={{background:"#fff",border:"0.5px solid #e5e7eb",borderRadius:12,padding:"14px 16px",marginBottom:10}}>
               <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:6}}>
                 <div>
-                  <div style={{fontSize:11,fontWeight:500,color:ms.color,textTransform:"uppercase",letterSpacing:0.5,marginBottom:2}}>{ms.label} · {ms.phase}</div>
+                  <div style={{fontSize:11,fontWeight:500,color:ms.color,textTransform:"uppercase",letterSpacing:0.5,marginBottom:2}}>{ms.tag}</div>
                   <div style={{fontSize:15,fontWeight:500}}>{ms.title}</div>
                 </div>
                 <div style={{textAlign:"right",flexShrink:0,marginLeft:12}}>
@@ -496,7 +496,7 @@ function App(){
               <div style={{height:6,borderRadius:99,background:"#e5e7eb",overflow:"hidden",marginTop:8}}>
                 <div style={{height:"100%",width:ms.pct+"%",background:ms.color,borderRadius:99,transition:"width 0.4s"}}/>
               </div>
-              <div style={{fontSize:11,color:"#9ca3af",marginTop:4}}>{ms.pct}% complete · ~{Math.ceil(ms.total/paceObj.tasksPerWeek)} weeks at {paceObj.label}</div>
+              <div style={{fontSize:11,color:"#9ca3af",marginTop:4}}>{ms.pct}% complete · ~{Math.ceil(ms.total/paceObj.tasksPerWeek)} weeks at {paceObj.label} · <span style={{color:ms.color,fontWeight:500}}>{ms.label}</span></div>
             </div>
           ))}
         </>
