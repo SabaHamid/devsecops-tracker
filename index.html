@@ -485,7 +485,7 @@ function App(){
             <div key={i} className="card" style={{background:"#fff",border:"0.5px solid #e5e7eb",borderRadius:12,padding:"14px 16px",marginBottom:10}}>
               <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:6}}>
                 <div>
-                  <div style={{fontSize:11,fontWeight:500,color:ms.color,textTransform:"uppercase",letterSpacing:0.5,marginBottom:2}}>{ms.tag}</div>
+                  <div style={{fontSize:11,fontWeight:500,color:ms.color,textTransform:"uppercase",letterSpacing:0.5,marginBottom:2}}>{ms.label} · {ms.phase}</div>
                   <div style={{fontSize:15,fontWeight:500}}>{ms.title}</div>
                 </div>
                 <div style={{textAlign:"right",flexShrink:0,marginLeft:12}}>
@@ -496,11 +496,7 @@ function App(){
               <div style={{height:6,borderRadius:99,background:"#e5e7eb",overflow:"hidden",marginTop:8}}>
                 <div style={{height:"100%",width:ms.pct+"%",background:ms.color,borderRadius:99,transition:"width 0.4s"}}/>
               </div>
-              {(()=>{
-                const wks=Math.ceil(ms.total/paceObj.tasksPerWeek);
-                const mos=(wks/4.3).toFixed(1);
-                return<div style={{fontSize:11,color:"#9ca3af",marginTop:4}}>{ms.pct}% complete · ~{wks} weeks (~{mos} months) at {paceObj.label} · <span style={{color:ms.color,fontWeight:500}}>{ms.label}</span></div>;
-              })()}
+              <div style={{fontSize:11,color:"#9ca3af",marginTop:4}}>{ms.pct}% complete · ~{Math.ceil(ms.total/paceObj.tasksPerWeek)} weeks at {paceObj.label}</div>
             </div>
           ))}
         </>
